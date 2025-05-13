@@ -1191,6 +1191,24 @@
 
                     <label>ข้อความที่จะตอบกลับ:</label>
                     <input type="text" id="draftReplyContent" placeholder="ใส่ข้อความที่จะตอบกลับ">
+
+                    <div class="message-setting-section">
+                        <div class="setting-title">รูปแบบการส่งข้อความ</div>
+                        <div class="rotation-options">
+                            <div class="rotation-option">
+                                <input type="radio" name="draftRotationPattern" value="rotate" id="draftRotatePattern" checked>
+                                <label for="draftRotatePattern">สลับกันส่งตามลำดับสมาชิก</label>
+                            </div>
+                            <div class="rotation-option">
+                                <input type="radio" name="draftRotationPattern" value="random" id="draftRandomPattern">
+                                <label for="draftRandomPattern">สุ่มสลับสมาชิกที่ส่ง</label>
+                            </div>
+                            <div class="rotation-option">
+                                <input type="radio" name="draftRotationPattern" value="single" id="draftSinglePattern">
+                                <label for="draftSinglePattern">ใช้สมาชิกคนเดียวส่งทั้งหมด</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -2113,6 +2131,15 @@
             document.getElementById('currentOperation').textContent = 'กำลังดำเนินการ...';
         }
 
+        async function updateRoomList() {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                console.error('No access token found');
+                return;
+            }
+            await fetchRooms(accessToken);
+        }
+
         async function createGroupWithMembers() {
             const groupName = document.getElementById('groupName').value;
             const memberCount = parseInt(document.getElementById('memberCount').value);
@@ -2291,6 +2318,10 @@
 
                     // ตรวจสอบว่ามี draft ที่กำลังใช้งานอยู่หรือไม่
                     const currentDraft = JSON.parse(localStorage.getItem('currentDraft') || 'null');
+                    
+                    // Update the room list first
+                    await updateRoomList();
+                    
                     if (currentDraft) {
                         // ตั้งค่าการส่งข้อความตาม draft
                         document.getElementById('batchContentType').value = currentDraft.contentType;
@@ -2304,43 +2335,201 @@
                         // ลบข้อมูล draft ที่ใช้งานแล้ว
                         localStorage.removeItem('currentDraft');
 
-                        // เริ่มส่งข้อความอัตโนมัติ
-                        setTimeout(() => {
-                            showBatchSendModal('group');
-                            // เลือกกลุ่มที่เพิ่งสร้าง
-                            setTimeout(() => {
-                                const roomCheckboxes = document.querySelectorAll('#roomSelection input[type="checkbox"]');
-                                roomCheckboxes.forEach(checkbox => {
-                                    if (checkbox.value === sessionId) {
-                                        checkbox.checked = true;
-                                        // Trigger change event to update mock options if needed
-                                        const event = new Event('change');
-                                        checkbox.dispatchEvent(event);
+                        // สร้างข้อมูลห้องสำหรับส่งข้อความ
+                        const roomForSending = window.lastRoomData.find(room => room.sessionId === sessionId);
+                        if (roomForSending) {
+                            // เตรียมข้อมูลสำหรับการส่งข้อความ
+                            const selectedRooms = [roomForSending];
+                            const contentType = currentDraft.contentType;
+                            const messageCount = currentDraft.messageCount;
+                            const destructTime = currentDraft.destructTime;
+                            const skipDestructTimeSequence = currentDraft.skipDestructTimeSequence;
+                            const pinSequence = currentDraft.pinSequence;
+                            const replySequence = currentDraft.replySequence;
+                            const replyContent = currentDraft.replyContent;
+                            const useMockTokens = true; // เปิดใช้งาน mock tokens โดยอัตโนมัติ
+                            const useMessageDelay = true; // เปิดใช้งาน delay โดยอัตโนมัติ
+
+                            // คำนวณจำนวนข้อความทั้งหมด
+                            const totalMessages = selectedRooms.length * messageCount;
+
+                            console.log('Starting automatic batch send with settings:', {
+                                contentType,
+                                messageCount,
+                                destructTime,
+                                skipDestructTimeSequence,
+                                pinSequence,
+                                replySequence,
+                                selectedRooms: selectedRooms.length,
+                                useMockTokens,
+                                useMessageDelay,
+                                totalMessages
+                            });
+
+                            let progress = 0;
+                            showProgressModal(progress, totalMessages);
+
+                            try {
+                                for (const room of selectedRooms) {
+                                    console.log(`Processing room: ${room.sessionId}`);
+                                    let messageCounter = 1;
+                                    let currentSequence = 0;
+                                    const messagesToPin = [];
+                                    const messagesToReply = [];
+
+                                    // ดึงข้อมูลสมาชิก mock
+                                    const mockGroups = JSON.parse(localStorage.getItem('mockGroups') || '[]');
+                                    const isMockGroup = mockGroups.includes(room.sessionId);
+                                    const mockMembers = isMockGroup ? getMockMemberTokens(room.sessionId) : [];
+
+                                    // สร้างรายการโทเคนที่จะใช้
+                                    let tokenRotation = [localStorage.getItem('accessToken'), ...mockMembers.map(member => member.token)];
+
+                                    while (messageCounter <= messageCount) {
+                                        if (contentType === 'ALL') {
+                                            const messageTypes = ['TEXT', 'LINK', 'IMAGE', 'VIDEO', 'MEDIA', 'FILE', 'STICKER', 'ALBUM', 'NOTE'];
+                                            const type = messageTypes[(messageCounter - 1) % messageTypes.length];
+                                            
+                                            currentSequence++;
+                                            const tokenIndex = (currentSequence - 1) % tokenRotation.length;
+                                            const currentToken = tokenRotation[tokenIndex];
+                                            
+                                            console.log(`[${tokenIndex + 1}/${tokenRotation.length}] Sending ${type} message #${messageCounter}`);
+                                            const result = await window.sendMessage(room, type, messageCounter.toString(), currentToken, destructTime, currentSequence, skipDestructTimeSequence);
+                                            
+                                            if (result && result !== 'NOTE_SUCCESS' && type !== 'ALBUM') {
+                                                if (currentSequence === pinSequence) {
+                                                    messagesToPin.push({ sessionId: room.sessionId, messageId: result, token: currentToken });
+                                                }
+                                                if (currentSequence === replySequence) {
+                                                    messagesToReply.push({ sessionId: room.sessionId, messageId: result, token: currentToken });
+                                                }
+                                            }
+                                            
+                                            progress++;
+                                            updateProgressModal(progress, totalMessages);
+                                            
+                                            if (useMessageDelay) {
+                                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                            }
+                                            messageCounter++;
+                                        } else {
+                                            currentSequence++;
+                                            const tokenIndex = (currentSequence - 1) % tokenRotation.length;
+                                            const currentToken = tokenRotation[tokenIndex];
+                                            
+                                            console.log(`[${tokenIndex + 1}/${tokenRotation.length}] Sending ${contentType} message #${messageCounter}`);
+                                            const messageId = await window.sendMessage(room, contentType, messageCounter.toString(), currentToken, destructTime, currentSequence, skipDestructTimeSequence);
+                                            
+                                            if (messageId && contentType !== 'NOTE' && contentType !== 'ALBUM') {
+                                                if (currentSequence === pinSequence) {
+                                                    messagesToPin.push({ sessionId: room.sessionId, messageId, token: currentToken });
+                                                }
+                                                if (currentSequence === replySequence) {
+                                                    messagesToReply.push({ sessionId: room.sessionId, messageId, token: currentToken });
+                                                }
+                                            }
+                                            
+                                            progress++;
+                                            updateProgressModal(progress, totalMessages);
+                                            messageCounter++;
+
+                                            if (useMessageDelay) {
+                                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                            }
+                                        }
                                     }
-                                });
-                                // Update mock options visibility
-                                const mockOptionsDiv = document.querySelector('.mock-options');
-                                if (mockOptionsDiv) {
-                                    mockOptionsDiv.style.display = 'block';
-                                }
-                                // Enable token rotation by default for mock groups
-                                const useMockTokensCheckbox = document.getElementById('useMockTokens');
-                                if (useMockTokensCheckbox) {
-                                    useMockTokensCheckbox.checked = true;
-                                    const tokenRotationOptions = document.getElementById('tokenRotationOptions');
-                                    if (tokenRotationOptions) {
-                                        tokenRotationOptions.style.display = 'block';
+
+                                    // Pin messages
+                                    if (contentType !== 'NOTE' && contentType !== 'ALBUM') {
+                                        console.log(`Messages to pin for room ${room.sessionId}:`, messagesToPin);
+                                        
+                                        for (const msgToPin of messagesToPin) {
+                                            try {
+                                                console.log(`Attempting to pin message: ${msgToPin.messageId}`);
+                                                
+                                                const pinResponse = await fetch('http://localhost:3000/api/chat/pin', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Authorization': `Bearer ${msgToPin.token}`,
+                                                        'App-Version': '1.9.0',
+                                                        'Os-Version': '12.0',
+                                                        'Accept-Language': 'en',
+                                                        'Platform': 'android',
+                                                        'Device-Id': crypto.randomUUID()
+                                                    },
+                                                    body: JSON.stringify({
+                                                        sessionId: msgToPin.sessionId,
+                                                        messageId: msgToPin.messageId
+                                                    })
+                                                });
+                                                
+                                                const pinData = await pinResponse.json();
+                                                console.log('Pin response:', pinData);
+                                                
+                                                if (useMessageDelay) {
+                                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                                }
+                                            } catch (error) {
+                                                console.error('Error pinning message:', error);
+                                            }
+                                        }
+                                    }
+
+                                    // Reply to messages
+                                    if (replySequence > 0 && replyContent) {
+                                        console.log(`Messages to reply for room ${room.sessionId}:`, messagesToReply);
+                                        
+                                        for (const msgToReply of messagesToReply) {
+                                            try {
+                                                console.log(`Attempting to reply to message: ${msgToReply.messageId}`);
+                                                
+                                                const replyResponse = await fetch('http://localhost:3000/api/chat/reply', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Authorization': `Bearer ${msgToReply.token}`,
+                                                        'App-Version': '1.9.0',
+                                                        'Os-Version': '12.0',
+                                                        'Accept-Language': 'en',
+                                                        'Platform': 'android',
+                                                        'Device-Id': crypto.randomUUID()
+                                                    },
+                                                    body: JSON.stringify({
+                                                        replyMsgId: msgToReply.messageId,
+                                                        sessionId: msgToReply.sessionId,
+                                                        referenceKey: crypto.randomUUID(),
+                                                        contentType: 'TEXT',
+                                                        content: replyContent
+                                                    })
+                                                });
+                                                
+                                                const replyData = await replyResponse.json();
+                                                console.log('Reply response:', replyData);
+                                                
+                                                if (useMessageDelay) {
+                                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                                }
+                                            } catch (error) {
+                                                console.error('Error replying to message:', error);
+                                            }
+                                        }
                                     }
                                 }
-                            }, 500); // Add a small delay to ensure the room list is populated
-                        }, 1000);
+                                
+                                hideProgressModal();
+                                alert('ส่งข้อความตาม Draft เสร็จสิ้น');
+                            } catch (error) {
+                                console.error('Error sending batch messages:', error);
+                                hideProgressModal();
+                                alert('เกิดข้อผิดพลาดในการส่งข้อความ');
+                            }
+                        }
                     }
 
                     alert('สร้างกลุ่มและเพิ่มสมาชิกเรียบร้อยแล้ว');
                     hideCreateGroupModal();
-                    if (!currentDraft) {
-                        location.reload(); // Refresh to show new group only if not using draft
-                    }
                 } else {
                     throw new Error('Failed to create group: ' + (groupData.message || 'Unknown error'));
                 }
@@ -2397,9 +2586,23 @@
                         <div>จำนวนสมาชิก: ${draft.memberCount}</div>
                         <div>ประเภทข้อความ: ${draft.contentType}</div>
                         <div>จำนวนข้อความ: ${draft.messageCount}</div>
+                        <div>รูปแบบการส่ง: ${getRotationPatternText(draft.rotationPattern)}</div>
                     </div>
                 </div>
             `).join('');
+        }
+
+        function getRotationPatternText(pattern) {
+            switch (pattern) {
+                case 'rotate':
+                    return 'สลับกันส่งตามลำดับสมาชิก';
+                case 'random':
+                    return 'สุ่มสลับสมาชิกที่ส่ง';
+                case 'single':
+                    return 'ใช้สมาชิกคนเดียวส่ง';
+                default:
+                    return 'สลับกันส่งตามลำดับสมาชิก';
+            }
         }
 
         function saveDraft() {
@@ -2413,7 +2616,8 @@
                 skipDestructTimeSequence: parseInt(document.getElementById('draftSkipDestructTimeSequence').value),
                 pinSequence: parseInt(document.getElementById('draftPinSequence').value),
                 replySequence: parseInt(document.getElementById('draftReplySequence').value),
-                replyContent: document.getElementById('draftReplyContent').value
+                replyContent: document.getElementById('draftReplyContent').value,
+                rotationPattern: document.querySelector('input[name="draftRotationPattern"]:checked').value
             };
 
             if (!draft.name) {
@@ -2467,6 +2671,17 @@
             document.getElementById('draftPinSequence').value = draft.pinSequence;
             document.getElementById('draftReplySequence').value = draft.replySequence;
             document.getElementById('draftReplyContent').value = draft.replyContent;
+
+            // Set rotation pattern
+            if (draft.rotationPattern) {
+                const rotationPattern = document.querySelector(`input[name="draftRotationPattern"][value="${draft.rotationPattern}"]`);
+                if (rotationPattern) {
+                    rotationPattern.checked = true;
+                }
+            } else {
+                // Default to rotate if not set
+                document.querySelector('input[name="draftRotationPattern"][value="rotate"]').checked = true;
+            }
 
             // แสดง modal แก้ไข
             showCreateDraftModal();
