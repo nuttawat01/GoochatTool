@@ -30,6 +30,7 @@ A web application for sending messages through the GooChat API with support for 
 rm -rf node_modules package-lock.json
 npm cache clean --force
 npm install
+node server.js
 ```
 
 2. Configure your environment:
