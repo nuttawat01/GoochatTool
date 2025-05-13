@@ -940,6 +940,36 @@
         .setting-description li {
             margin: 4px 0;
         }
+
+        .draft-select {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .run-selected-btn {
+            transition: background-color 0.3s;
+        }
+
+        .run-selected-btn:hover {
+            background-color: #45a049 !important;
+        }
+
+        .select-all-container {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .draft-checkbox {
+            user-select: none;
+        }
+
+        .draft-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
     </style>
 </head>
 <body>
@@ -1133,10 +1163,21 @@
             </div>
             <div class="modal-body">
                 <div class="draft-options">
+                    <div class="draft-actions" style="margin-bottom: 15px;">
+                        <button class="create-draft-btn" onclick="showCreateDraftModal()">สร้าง Draft ใหม่</button>
+                        <button class="run-selected-btn" onclick="runSelectedDrafts()" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-left: 10px;">
+                            รัน Draft ที่เลือก
+                        </button>
+                    </div>
+                    <div class="select-all-container" style="margin-bottom: 10px;">
+                        <label class="draft-checkbox" style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="selectAllDrafts" onchange="toggleSelectAllDrafts()">
+                            <span style="margin-left: 8px;">เลือกทั้งหมด</span>
+                        </label>
+                    </div>
                     <div class="draft-list" id="draftList">
                         <!-- Drafts will be listed here -->
                     </div>
-                    <button class="create-draft-btn" onclick="showCreateDraftModal()">สร้าง Draft ใหม่</button>
                 </div>
             </div>
         </div>
@@ -2004,7 +2045,8 @@
                 }
                 
                 hideProgressModal();
-                alert('ส่งข้อความเสร็จสิ้น');
+                // Remove this alert to prevent interruption
+                // alert('ส่งข้อความเสร็จสิ้น');
                 hideBatchSendModal();
             } catch (error) {
                 console.error('Error sending batch messages:', error);
@@ -2522,7 +2564,8 @@
                                 }
                                 
                                 hideProgressModal();
-                                alert('ส่งข้อความตาม Draft เสร็จสิ้น');
+                                // Remove this alert to prevent interruption
+                                // alert('ส่งข้อความตาม Draft เสร็จสิ้น');
                             } catch (error) {
                                 console.error('Error sending batch messages:', error);
                                 hideProgressModal();
@@ -2531,7 +2574,8 @@
                         }
                     }
 
-                    alert('สร้างกลุ่มและเพิ่มสมาชิกเรียบร้อยแล้ว');
+                    // Remove this alert to prevent interruption
+                    // alert('สร้างกลุ่มและเพิ่มสมาชิกเรียบร้อยแล้ว');
                     hideCreateGroupModal();
                 } else {
                     throw new Error('Failed to create group: ' + (groupData.message || 'Unknown error'));
@@ -2550,7 +2594,7 @@
         // เพิ่มฟังก์ชันสำหรับจัดการ Draft
         function showDraftModal() {
             document.getElementById('draftModal').style.display = 'flex';
-            loadDrafts();
+            displayDrafts(); // Changed from loadDrafts() to displayDrafts()
         }
 
         function hideDraftModal() {
@@ -2565,7 +2609,7 @@
             document.getElementById('createDraftModal').style.display = 'none';
         }
 
-        function loadDrafts() {
+        function displayDrafts() {
             const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
             const draftList = document.getElementById('draftList');
             
@@ -2577,7 +2621,10 @@
             draftList.innerHTML = drafts.map((draft, index) => `
                 <div class="draft-item">
                     <div class="draft-item-header">
-                        <div class="draft-item-name">${draft.name}</div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" class="draft-select" data-index="${index}" style="margin-right: 10px;">
+                            <div class="draft-item-name">${draft.name}</div>
+                        </div>
                         <div class="draft-item-actions">
                             <button onclick="useDraft(${index})" class="use-btn">ใช้งาน</button>
                             <button onclick="editDraft(${index})" class="edit-btn">แก้ไข</button>
@@ -2594,6 +2641,12 @@
                     </div>
                 </div>
             `).join('');
+
+            // Reset select all checkbox
+            const selectAllCheckbox = document.getElementById('selectAllDrafts');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
         }
 
         function getRotationPatternText(pattern) {
@@ -2645,7 +2698,8 @@
             localStorage.setItem('messageDrafts', JSON.stringify(drafts));
 
             hideCreateDraftModal();
-            loadDrafts();
+            displayDrafts(); // Changed from loadDrafts() to displayDrafts()
+            showDraftModal(); // Added to show the updated draft list
         }
 
         function useDraft(index) {
@@ -2707,7 +2761,134 @@
                 const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
                 drafts.splice(index, 1);
                 localStorage.setItem('messageDrafts', JSON.stringify(drafts));
-                loadDrafts();
+                displayDrafts(); // Changed from loadDrafts() to displayDrafts()
+            }
+        }
+
+        function toggleSelectAllDrafts() {
+            const selectAllCheckbox = document.getElementById('selectAllDrafts');
+            const draftCheckboxes = document.querySelectorAll('.draft-select');
+            draftCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        async function runSelectedDrafts() {
+            const selectedCheckboxes = document.querySelectorAll('.draft-select:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('กรุณาเลือก Draft อย่างน้อย 1 รายการ');
+                return;
+            }
+
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            const selectedDrafts = Array.from(selectedCheckboxes).map(checkbox => {
+                const index = parseInt(checkbox.dataset.index);
+                return drafts[index];
+            });
+
+            if (confirm(`ต้องการรัน ${selectedDrafts.length} Draft ที่เลือกใช่หรือไม่?`)) {
+                hideDraftModal();
+
+                // Create and show the draft progress modal
+                const draftProgressModal = document.createElement('div');
+                draftProgressModal.id = 'draftProgressModal';
+                draftProgressModal.className = 'modal-overlay';
+                draftProgressModal.style.display = 'flex';
+                draftProgressModal.innerHTML = `
+                    <div class="modal" style="max-width: 500px;">
+                        <div class="modal-header">
+                            <h3>กำลังรัน Draft</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div class="progress-container" style="margin-bottom: 20px;">
+                                <div style="margin-bottom: 10px;">ความคืบหน้าโดยรวม:</div>
+                                <div class="progress-bar" style="background-color: #f0f2f5; border-radius: 4px; height: 20px; overflow: hidden;">
+                                    <div class="progress-fill" id="draftOverallProgress" style="background-color: #1877f2; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                                </div>
+                                <div class="progress-text" id="draftOverallProgressText" style="text-align: center; margin-top: 8px; color: var(--text-secondary);">0%</div>
+                            </div>
+                            <div id="draftStatusList" style="max-height: 200px; overflow-y: auto; margin-top: 15px;">
+                                ${selectedDrafts.map((draft, index) => `
+                                    <div class="draft-status-item" id="draftStatus_${index}" style="padding: 10px; margin-bottom: 8px; background: #f0f2f5; border-radius: 8px;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                            <strong>${draft.name}</strong>
+                                            <span class="status-badge" style="background: #65676b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">รอดำเนินการ</span>
+                                        </div>
+                                        <div style="font-size: 14px; color: var(--text-secondary);">
+                                            กลุ่ม: ${draft.groupName}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(draftProgressModal);
+
+                // Function to update draft status
+                function updateDraftStatus(index, status, isComplete = false) {
+                    const statusElement = document.querySelector(`#draftStatus_${index} .status-badge`);
+                    if (statusElement) {
+                        statusElement.textContent = status;
+                        statusElement.style.background = isComplete ? '#42b72a' : '#1877f2';
+                    }
+                }
+
+                // Function to update overall progress
+                function updateOverallProgress(completed, total) {
+                    const progressElement = document.getElementById('draftOverallProgress');
+                    const progressTextElement = document.getElementById('draftOverallProgressText');
+                    const percentage = Math.round((completed / total) * 100);
+                    
+                    if (progressElement) progressElement.style.width = `${percentage}%`;
+                    if (progressTextElement) progressTextElement.textContent = `${completed}/${total} (${percentage}%)`;
+                }
+
+                try {
+                    for (let i = 0; i < selectedDrafts.length; i++) {
+                        const draft = selectedDrafts[i];
+                        
+                        // Update status to "กำลังดำเนินการ"
+                        updateDraftStatus(i, 'กำลังดำเนินการ');
+                        
+                        // Set up group creation parameters
+                        document.getElementById('groupName').value = draft.groupName;
+                        document.getElementById('memberCount').value = draft.memberCount;
+                        document.getElementById('startPhoneNumber').value = draft.startPhoneNumber;
+
+                        // Store current draft for use after group creation
+                        localStorage.setItem('currentDraft', JSON.stringify(draft));
+
+                        // Create group and send messages
+                        await createGroupWithMembers();
+
+                        // Update status to "เสร็จสิ้น"
+                        updateDraftStatus(i, 'เสร็จสิ้น', true);
+                        
+                        // Update overall progress
+                        updateOverallProgress(i + 1, selectedDrafts.length);
+
+                        // Wait a bit between drafts
+                        if (i < selectedDrafts.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                    }
+
+                    // Remove the progress modal after completion
+                    setTimeout(() => {
+                        const modal = document.getElementById('draftProgressModal');
+                        if (modal) modal.remove();
+                        alert('ดำเนินการเสร็จสิ้นทั้งหมด');
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('Error running drafts:', error);
+                    alert('เกิดข้อผิดพลาดในการรัน Draft: ' + error.message);
+                    
+                    // Remove the progress modal on error
+                    const modal = document.getElementById('draftProgressModal');
+                    if (modal) modal.remove();
+                }
             }
         }
     </script>
