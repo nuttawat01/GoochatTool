@@ -1160,6 +1160,9 @@
                     <label>จำนวนสมาชิกในกลุ่ม:</label>
                     <input type="number" id="draftMemberCount" min="1" value="1">
 
+                    <label>เบอร์โทรเริ่มต้น:</label>
+                    <input type="text" id="draftStartPhoneNumber" placeholder="เช่น 60000800">
+
                     <label>ประเภทข้อความ:</label>
                     <select id="draftContentType">
                         <option value="TEXT">ข้อความ</option>
@@ -2584,6 +2587,7 @@
                     <div class="draft-item-details">
                         <div>ชื่อกลุ่ม: ${draft.groupName}</div>
                         <div>จำนวนสมาชิก: ${draft.memberCount}</div>
+                        <div>เบอร์โทรเริ่มต้น: ${draft.startPhoneNumber || '-'}</div>
                         <div>ประเภทข้อความ: ${draft.contentType}</div>
                         <div>จำนวนข้อความ: ${draft.messageCount}</div>
                         <div>รูปแบบการส่ง: ${getRotationPatternText(draft.rotationPattern)}</div>
@@ -2610,6 +2614,7 @@
                 name: document.getElementById('draftName').value,
                 groupName: document.getElementById('draftGroupName').value,
                 memberCount: parseInt(document.getElementById('draftMemberCount').value),
+                startPhoneNumber: document.getElementById('draftStartPhoneNumber').value,
                 contentType: document.getElementById('draftContentType').value,
                 messageCount: parseInt(document.getElementById('draftMessageCount').value),
                 destructTime: parseInt(document.getElementById('draftDestructTime').value),
@@ -2630,6 +2635,11 @@
                 return;
             }
 
+            if (!draft.startPhoneNumber) {
+                alert('กรุณากรอกเบอร์โทรเริ่มต้น');
+                return;
+            }
+
             const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
             drafts.push(draft);
             localStorage.setItem('messageDrafts', JSON.stringify(drafts));
@@ -2645,7 +2655,7 @@
             // สร้างกลุ่มใหม่ตามการตั้งค่าใน draft
             document.getElementById('groupName').value = draft.groupName;
             document.getElementById('memberCount').value = draft.memberCount;
-            document.getElementById('startPhoneNumber').value = '60000800'; // ค่าเริ่มต้น
+            document.getElementById('startPhoneNumber').value = draft.startPhoneNumber || '60000800';
 
             // แสดง modal สร้างกลุ่ม
             showCreateGroupModal();
@@ -2664,6 +2674,7 @@
             document.getElementById('draftName').value = draft.name;
             document.getElementById('draftGroupName').value = draft.groupName;
             document.getElementById('draftMemberCount').value = draft.memberCount;
+            document.getElementById('draftStartPhoneNumber').value = draft.startPhoneNumber || '';
             document.getElementById('draftContentType').value = draft.contentType;
             document.getElementById('draftMessageCount').value = draft.messageCount;
             document.getElementById('draftDestructTime').value = draft.destructTime;
