@@ -1,0 +1,2424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GooChat - แพลตฟอร์มแชทที่ใช้งานง่ายและปลอดภัย">
+    <title>GooChat - Send Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --primary-hover: #166fe5;
+            --success-color: #42b72a;
+            --error-color: #ff4d4f;
+            --text-primary: #1c1e21;
+            --text-secondary: #65676b;
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --border-color: #dddfe2;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s ease-in-out;
+            --header-height: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            gap: 30px;
+            padding: 20px;
+            height: calc(100vh - var(--header-height));
+            max-width: 1800px;
+            width: 95%;
+            margin: 0 auto;
+        }
+
+        .panel {
+            flex: 1;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            min-width: 500px;
+        }
+
+        .panel-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            color: var(--text-primary);
+            font-size: 26px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .room-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* ปรับแต่ง scrollbar */
+        .room-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .room-list::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .room-list::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .room-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
+        }
+
+        .room-item {
+            background-color: var(--bg-primary);
+            padding: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .room-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .room-item.selected {
+            background-color: rgba(24, 119, 242, 0.1);
+            border: 2px solid var(--primary-color);
+        }
+
+        .room-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .type-group {
+            background-color: var(--primary-color);
+        }
+
+        .type-chat {
+            background-color: var(--success-color);
+        }
+
+        .type-oa {
+            background-color: var(--error-color);
+        }
+
+        .type-mock {
+            background-color: #ff9800;
+        }
+
+        .mock-badge, .draft-badge {
+            display: inline-flex;
+            align-items: center;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .mock-badge {
+            background-color: #ff9800;
+        }
+
+        .draft-badge {
+            background-color: #2196F3;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .room-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .room-id {
+            font-size: 14px;
+            color: var(--text-secondary);
+            word-break: break-all;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 30px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        @media (max-width: 1400px) {
+            .container {
+                max-width: 98%;
+                gap: 20px;
+            }
+            .panel, .panel-group, .panel-private {
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                padding: 10px;
+                width: 100%;
+                gap: 15px;
+            }
+
+            .panel {
+                height: calc((100vh - var(--header-height) - 60px) / 2);
+                padding: 15px;
+            }
+
+            .panel-group,
+            .panel-private {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .room-list {
+                padding-right: 10px;
+                gap: 12px;
+            }
+
+            .room-item {
+                padding: 15px;
+            }
+
+            .panel-header {
+                padding-bottom: 15px;
+                margin-bottom: 15px;
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .batch-send-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .panel-header h2 {
+                font-size: 22px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .back-button {
+                right: 15px;
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
+        .profile-section {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .profile-item {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 12px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .profile-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .profile-label {
+            font-weight: 500;
+            width: 120px;
+            color: var(--text-primary);
+        }
+
+        .profile-value {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        /* เพิ่ม style สำหรับ batch send */
+        .batch-send-btn {
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .batch-send-btn:hover {
+            background-color: #36a420;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .batch-send-btn:active {
+            transform: translateY(0);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dddfe2;
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #1877f2;
+            font-size: 20px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #65676b;
+            padding: 0;
+            width: auto;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 10px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid #dddfe2;
+            flex-shrink: 0;
+        }
+
+        .modal-footer button {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .cancel-btn {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .cancel-btn:before {
+            content: "✕";
+        }
+
+        .cancel-btn:hover {
+            background-color: #e4e6eb;
+        }
+
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .send-btn:before {
+            content: "✓";
+        }
+
+        .send-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .room-selection {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f0f2f5;
+            border-radius: 8px;
+        }
+
+        .room-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .room-checkbox:hover {
+            background-color: #e4e6eb;
+        }
+
+        .room-checkbox input[type="checkbox"] {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .message-options {
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-options label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .message-options input,
+        .message-options select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .message-options input:focus,
+        .message-options select:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        .select-all-container {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 10px;
+            margin: -10px -10px 10px -10px;
+            border-bottom: 1px solid #dddfe2;
+            z-index: 1;
+        }
+
+        /* ปรับแต่ง scrollbar ให้สวยงาม */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .create-group-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .create-group-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .create-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .create-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .group-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .group-options label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .group-options input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        #creationProgress {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        #currentOperation {
+            margin-top: 10px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .mock-options {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fff3e0;
+            border-radius: 8px;
+            border: 1px solid #ffe0b2;
+        }
+
+        .mock-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 5px;
+        }
+
+        .mock-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        #tokenRotationOptions {
+            background-color: rgba(255, 255, 255, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .rotation-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .rotation-option {
+            display: grid;
+            grid-template-columns: 24px 1fr;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background-color: white;
+            border-radius: 6px;
+            border: 1px solid #ffe0b2;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .rotation-option:hover {
+            background-color: #fff8e6;
+        }
+
+        .rotation-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .rotation-option label {
+            cursor: pointer;
+            user-select: none;
+            color: #333;
+            font-weight: normal;
+        }
+
+        #singleSenderOption {
+            background-color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #ffe0b2;
+        }
+
+        #singleSenderSelect {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            background-color: white;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        #singleSenderSelect:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        .room-checkbox.mock-group {
+            border: 1px solid #ffe0b2;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .room-checkbox.mock-group:hover {
+            background-color: #ffe0b2 !important;
+        }
+
+        .mock-label {
+            display: inline-block;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .room-checkbox.mock-group input[type="checkbox"]:checked + span {
+            color: #f57c00;
+        }
+
+        .draft-btn {
+            background-color: #ff9800;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .draft-btn:hover {
+            background-color: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .draft-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .draft-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .draft-item {
+            background-color: var(--bg-primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .draft-item:hover {
+            background-color: #f5f6f7;
+        }
+
+        .draft-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .draft-item-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .draft-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .create-draft-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .create-draft-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .draft-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .draft-form label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .draft-form input,
+        .draft-form select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .save-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .save-btn:hover {
+            background-color: #36a420;
+        }
+
+        .delay-options {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .delay-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        #delayDescription {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>GooChat - Send Messages</h1>
+        <a href="index.html" class="back-button">กลับหน้าหลัก</a>
+    </div>
+
+    <div class="container">
+        <div class="panel panel-group">
+            <div class="panel-header">
+                <h2>Group Chats</h2>
+                <div class="button-group">
+                    <button class="batch-send-btn" onclick="showBatchSendModal('group')">ส่งข้อความเป็นชุด</button>
+                    <button class="create-group-btn" onclick="showCreateGroupModal()">สร้างกลุ่ม</button>
+                    <button class="draft-btn" onclick="showDraftModal()">Draft</button>
+                </div>
+            </div>
+            <div class="room-list" id="groupList">
+                <!-- Group rooms will be populated here -->
+            </div>
+        </div>
+
+        <div class="panel panel-private">
+            <div class="panel-header">
+                <h2>Private Chats</h2>
+                <button class="batch-send-btn" onclick="showBatchSendModal('private')">ส่งข้อความเป็นชุด</button>
+            </div>
+            <div class="room-list" id="privateList">
+                <!-- Private rooms will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <section class="profile-section" id="profileSection">
+        <div class="profile-group">
+            <div class="profile-item">
+                <div class="profile-label">ชื่อที่แสดง:</div>
+                <div class="profile-value" id="profileName">-</div>
+            </div>
+            <div class="profile-item">
+                <div class="profile-label">GooChat ID:</div>
+                <div class="profile-value" id="profileId">-</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for batch sending -->
+    <div id="batchSendModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>ส่งข้อความเป็นชุด</h3>
+                <button class="close-modal" onclick="hideBatchSendModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="select-all-container">
+                    <label class="room-checkbox">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        เลือกทั้งหมด
+                    </label>
+                </div>
+                <div class="room-selection" id="roomSelection">
+                    <!-- Rooms will be populated here -->
+                </div>
+                <div class="message-options">
+                    <label>ประเภทข้อความ:</label>
+                    <select id="batchContentType" class="content-type-select">
+                        <option value="TEXT">ข้อความ</option>
+                        <option value="LINK">ลิงก์</option>
+                        <option value="IMAGE">รูปภาพ</option>
+                        <option value="VIDEO">วิดีโอ</option>
+                        <option value="MEDIA">มีเดีย</option>
+                        <option value="FILE">ไฟล์</option>
+                        <option value="STICKER">สติ๊กเกอร์</option>
+                        <option value="ALBUM">อัลบั้ม</option>
+                        <option value="NOTE">โน้ต</option>
+                        <option value="ALL">ส่งทุกประเภท</option>
+                    </select>
+
+                    <label>จำนวนข้อความต่อห้อง:</label>
+                    <input type="number" id="batchMessageCount" min="1" max="1000" value="1">
+                    
+                    <label>เวลาลบอัตโนมัติ (วินาที):</label>
+                    <input type="number" id="batchDestructTime" min="0" value="0">
+
+                    <label>ลำดับข้อความที่จะไม่ส่งเวลาลบอัตโนมัติ:</label>
+                    <input type="number" id="skipDestructTimeSequence" min="0" value="0" placeholder="ใส่ลำดับข้อความที่จะไม่ส่งเวลาลบอัตโนมัติ">
+
+                    <label>ลำดับข้อความที่จะปักหมุด</label>
+                    <input type="number" id="pinMessageSequence" min="0" max="6" value="0">
+
+                    <label>ลำดับข้อความที่จะตอบกลับ</label>
+                    <input type="number" id="replyMessageSequence" min="0" value="0">
+
+                    <label>ข้อความที่จะตอบกลับ:</label>
+                    <input type="text" id="replyMessageContent" placeholder="ใส่ข้อความที่จะตอบกลับ">
+
+                    <div class="delay-options" style="margin-top: 15px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                        <label class="delay-checkbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="useMessageDelay" checked>
+                            <span>ส่งข้อความแบบมีดีเลย์ (2 วินาที)</span>
+                        </label>
+                        <div id="delayDescription" style="margin-top: 8px; font-size: 14px; color: #6c757d;">
+                            * เมื่อเปิดใช้งาน จะรอ 2 วินาทีระหว่างการส่งแต่ละข้อความ<br>
+                            * เมื่อปิดใช้งาน จะส่งข้อความต่อเนื่องทันที
+                        </div>
+                    </div>
+
+                    <div class="mock-options">
+                        <label class="mock-checkbox">
+                            <input type="checkbox" id="useMockTokens">
+                            ใช้โทเคนสมาชิกสลับกันส่งข้อความ (เฉพาะกลุ่ม mock)
+                        </label>
+                        <div id="tokenRotationOptions" style="display: none;">
+                            <label style="font-weight: 500; color: #333;">รูปแบบการส่ง:</label>
+                            <div class="rotation-options">
+                                <div class="rotation-option">
+                                    <input type="radio" name="rotationPattern" value="rotate" id="rotatePattern" checked>
+                                    <label for="rotatePattern">สลับกันส่งตามลำดับสมาชิก</label>
+                                </div>
+                                <div class="rotation-option">
+                                    <input type="radio" name="rotationPattern" value="random" id="randomPattern">
+                                    <label for="randomPattern">สุ่มสลับสมาชิกที่ส่ง</label>
+                                </div>
+                                <div class="rotation-option">
+                                    <input type="radio" name="rotationPattern" value="single" id="singlePattern">
+                                    <label for="singlePattern">ใช้สมาชิกคนเดียวส่งทั้งหมด</label>
+                                </div>
+                            </div>
+                            <div id="singleSenderOption" style="display: none;">
+                                <label style="font-weight: 500; color: #333;">เลือกสมาชิกที่จะส่ง:</label>
+                                <select id="singleSenderSelect">
+                                    <option value="">-- เลือกสมาชิก --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="hideBatchSendModal()">ยกเลิก</button>
+                <button class="send-btn" onclick="sendBatchMessages()">ส่งข้อความ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for creating group -->
+    <div id="createGroupModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>สร้างกลุ่มใหม่</h3>
+                <button class="close-modal" onclick="hideCreateGroupModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="group-options">
+                    <label>ชื่อกลุ่ม:</label>
+                    <input type="text" id="groupName" placeholder="กรอกชื่อกลุ่ม">
+                    
+                    <label>จำนวนสมาชิก:</label>
+                    <input type="number" id="memberCount" min="1" max="100" value="1">
+                    
+                    <label>เบอร์โทรเริ่มต้น:</label>
+                    <input type="text" id="startPhoneNumber" placeholder="เช่น 60000800">
+                </div>
+                <div id="creationProgress" style="display: none;">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="groupProgressFill"></div>
+                        </div>
+                        <div class="progress-text" id="groupProgressText">0%</div>
+                    </div>
+                    <div id="currentOperation">กำลังดำเนินการ...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="hideCreateGroupModal()">ยกเลิก</button>
+                <button class="create-btn" onclick="createGroupWithMembers()">สร้างกลุ่ม</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for draft settings -->
+    <div id="draftModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Draft การส่งข้อความเป็นชุด</h3>
+                <button class="close-modal" onclick="hideDraftModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="draft-options">
+                    <div class="draft-list" id="draftList">
+                        <!-- Drafts will be listed here -->
+                    </div>
+                    <button class="create-draft-btn" onclick="showCreateDraftModal()">สร้าง Draft ใหม่</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for creating/editing draft -->
+    <div id="createDraftModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>สร้าง Draft ใหม่</h3>
+                <button class="close-modal" onclick="hideCreateDraftModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="draft-form">
+                    <label>ชื่อ Draft:</label>
+                    <input type="text" id="draftName" placeholder="ตั้งชื่อ Draft">
+
+                    <label>ชื่อกลุ่ม:</label>
+                    <input type="text" id="draftGroupName" placeholder="ตั้งชื่อกลุ่ม">
+
+                    <label>จำนวนสมาชิกในกลุ่ม:</label>
+                    <input type="number" id="draftMemberCount" min="1" value="1">
+
+                    <label>ประเภทข้อความ:</label>
+                    <select id="draftContentType">
+                        <option value="TEXT">ข้อความ</option>
+                        <option value="LINK">ลิงก์</option>
+                        <option value="IMAGE">รูปภาพ</option>
+                        <option value="VIDEO">วิดีโอ</option>
+                        <option value="MEDIA">มีเดีย</option>
+                        <option value="FILE">ไฟล์</option>
+                        <option value="STICKER">สติ๊กเกอร์</option>
+                        <option value="ALBUM">อัลบั้ม</option>
+                        <option value="NOTE">โน้ต</option>
+                        <option value="ALL">ส่งทุกประเภท</option>
+                    </select>
+
+                    <label>จำนวนข้อความต่อห้อง:</label>
+                    <input type="number" id="draftMessageCount" min="1" value="1">
+
+                    <label>เวลาลบอัตโนมัติ (วินาที):</label>
+                    <input type="number" id="draftDestructTime" min="0" value="0">
+
+                    <label>ลำดับข้อความที่จะไม่ส่งเวลาลบอัตโนมัติ:</label>
+                    <input type="number" id="draftSkipDestructTimeSequence" min="0" value="0">
+
+                    <label>ลำดับข้อความที่จะปักหมุด:</label>
+                    <input type="number" id="draftPinSequence" min="0" value="0">
+
+                    <label>ลำดับข้อความที่จะตอบกลับ:</label>
+                    <input type="number" id="draftReplySequence" min="0" value="0">
+
+                    <label>ข้อความที่จะตอบกลับ:</label>
+                    <input type="text" id="draftReplyContent" placeholder="ใส่ข้อความที่จะตอบกลับ">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="hideCreateDraftModal()">ยกเลิก</button>
+                <button class="save-btn" onclick="saveDraft()">บันทึก Draft</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // เมื่อโหลดหน้า
+        window.addEventListener('DOMContentLoaded', () => {
+            // ดึง access token จาก localStorage
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert('กรุณาเข้าสู่ระบบก่อน');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // ดึงข้อมูลห้องแชท
+            fetchRooms(accessToken);
+        });
+
+        let selectedRoomType = '';
+
+        function showBatchSendModal(type) {
+            selectedRoomType = type;
+            const modal = document.getElementById('batchSendModal');
+            const roomSelection = document.getElementById('roomSelection');
+            const rooms = window.lastRoomData;
+            const mockGroups = JSON.parse(localStorage.getItem('mockGroups') || '[]');
+
+            if (!rooms || !Array.isArray(rooms)) {
+                alert('ไม่พบข้อมูลห้องแชท กรุณารีเฟรชหน้าเว็บ');
+                return;
+            }
+            
+            // กรองห้องตามประเภท
+            const filteredRooms = rooms.filter(room => {
+                if (type === 'group') {
+                    return room.sessionType === 'GROUP';
+                } else {
+                    return room.sessionType === 'CHAT' || room.official;
+                }
+            });
+
+            // สร้าง checkbox สำหรับแต่ละห้อง
+            roomSelection.innerHTML = filteredRooms.map(room => {
+                const isMockGroup = mockGroups.includes(room.sessionId);
+                const mockMembers = isMockGroup ? getMockMemberTokens(room.sessionId) : [];
+                const mockLabel = isMockGroup ? 
+                    `<span class="mock-label" style="background: #fff3e0; color: #f57c00; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 8px;">Mock Group (${mockMembers.length} members)</span>` : '';
+                
+                let displayName;
+                if (room.sessionType === 'GROUP') {
+                    displayName = room.groupName || 'Unnamed Group';
+                } else if (room.official) {
+                    displayName = room.official.displayName || 'Official Account';
+                } else {
+                    displayName = room.user?.displayName || 'Unknown User';
+                }
+                
+                return `
+                    <label class="room-checkbox ${isMockGroup ? 'mock-group' : ''}" style="${isMockGroup ? 'background-color: #fff3e0;' : ''}">
+                        <input type="checkbox" value="${room.sessionId}" data-is-mock="${isMockGroup}">
+                        ${displayName} ${mockLabel}
+                    </label>
+                `;
+            }).join('');
+
+            // Show/hide mock options based on selection
+            const mockOptionsDiv = document.querySelector('.mock-options');
+            const useMockTokensCheckbox = document.getElementById('useMockTokens');
+            const tokenRotationOptions = document.getElementById('tokenRotationOptions');
+            
+            function updateMockOptions() {
+                const selectedMockGroups = Array.from(document.querySelectorAll('#roomSelection input[type="checkbox"]:checked'))
+                    .some(checkbox => checkbox.dataset.isMock === 'true');
+                
+                mockOptionsDiv.style.display = selectedMockGroups ? 'block' : 'none';
+                if (!selectedMockGroups) {
+                    useMockTokensCheckbox.checked = false;
+                    tokenRotationOptions.style.display = 'none';
+                }
+            }
+
+            function updateSingleSenderOptions() {
+                const singleSenderOption = document.getElementById('singleSenderOption');
+                const singleSenderSelect = document.getElementById('singleSenderSelect');
+                const rotationPattern = document.querySelector('input[name="rotationPattern"]:checked')?.value || 'rotate';
+                
+                singleSenderOption.style.display = rotationPattern === 'single' ? 'block' : 'none';
+                
+                if (rotationPattern === 'single') {
+                    // Get selected mock groups
+                    const selectedMockGroups = Array.from(document.querySelectorAll('#roomSelection input[type="checkbox"]:checked'))
+                        .filter(checkbox => checkbox.dataset.isMock === 'true')
+                        .map(checkbox => checkbox.value);
+                    
+                    // Get members from the first selected mock group
+                    if (selectedMockGroups.length > 0) {
+                        const mockMembers = getMockMemberTokens(selectedMockGroups[0]);
+                        singleSenderSelect.innerHTML = '<option value="">-- เลือกสมาชิก --</option>' +
+                            mockMembers.map((member, index) => `
+                                <option value="${index}">สมาชิก ${index + 1} (${member.displayName || member.phone})</option>
+                            `).join('');
+                    }
+                }
+            }
+
+            // Add event listeners
+            document.querySelectorAll('#roomSelection input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateMockOptions);
+            });
+
+            document.getElementById('selectAll').addEventListener('change', updateMockOptions);
+
+            useMockTokensCheckbox.addEventListener('change', function() {
+                tokenRotationOptions.style.display = this.checked ? 'block' : 'none';
+                updateSingleSenderOptions();
+            });
+
+            document.getElementsByName('rotationPattern').forEach(radio => {
+                radio.addEventListener('change', updateSingleSenderOptions);
+            });
+
+            modal.style.display = 'flex';
+            updateMockOptions();
+        }
+
+        function hideBatchSendModal() {
+            const modal = document.getElementById('batchSendModal');
+            modal.style.display = 'none';
+            document.getElementById('selectAll').checked = false;
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('#roomSelection input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        function getSelectedRooms() {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert('กรุณาเข้าสู่ระบบใหม่');
+                window.location.href = 'index.html';
+                return [];
+            }
+
+            return Array.from(document.querySelectorAll('#roomSelection input[type="checkbox"]:checked'))
+                .map(checkbox => {
+                    const room = window.lastRoomData.find(r => r.sessionId === checkbox.value);
+                    if (!room) {
+                        console.error(`Room not found for sessionId: ${checkbox.value}`);
+                        return null;
+                    }
+                    return room;
+                })
+                .filter(room => room !== null);
+        }
+
+        function showProgressModal(progress, total) {
+            const progressModal = document.createElement('div');
+            progressModal.id = 'progressModal';
+            progressModal.className = 'modal-overlay';
+            progressModal.style.display = 'flex';
+            progressModal.innerHTML = `
+                <div class="modal" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <h3>กำลังส่งข้อความ</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="progress-container" style="display: block; margin-bottom: 15px;">
+                            <div class="progress-bar" style="background-color: #f0f2f5; border-radius: 4px; height: 20px; overflow: hidden;">
+                                <div class="progress-fill" id="batchProgressFill" style="background-color: #1877f2; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                            </div>
+                            <div class="progress-text" id="batchProgressText" style="text-align: center; margin-top: 8px; color: var(--text-secondary);">0%</div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <div id="batchCurrentStatus" style="text-align: center; color: var(--text-secondary);">
+                                ส่งแล้ว: 0/${total} ข้อความ
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(progressModal);
+        }
+
+        function updateProgressModal(progress, total) {
+            const progressFill = document.getElementById('batchProgressFill');
+            const progressText = document.getElementById('batchProgressText');
+            const currentStatus = document.getElementById('batchCurrentStatus');
+            
+            const percentage = Math.round((progress / total) * 100);
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = `${percentage}%`;
+            currentStatus.textContent = `ส่งแล้ว: ${progress}/${total} ข้อความ`;
+        }
+
+        function hideProgressModal() {
+            const progressModal = document.getElementById('progressModal');
+            if (progressModal) {
+                progressModal.remove();
+            }
+        }
+
+        // เพิ่มฟังก์ชันสำหรับแปลง timestamp
+        function convertDateToMicroTimestamp(date = new Date()) {
+            const millisTimestamp = date.getTime();
+            let microTimestamp = millisTimestamp * 1000;
+            const randomDigits = Math.floor(Math.random() * 1000);
+            microTimestamp = microTimestamp * 1000 + randomDigits;
+            
+            return {
+                date: date,
+                formatted: `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`,
+                microTimestamp: microTimestamp
+            };
+        }
+
+        // ฟังก์ชันสำหรับส่งข้อความ
+        window.sendMessage = async function(room, type, counterMessage, accessToken, destructTime, currentSequence, skipDestructTimeSequence) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'App-Version': '1.9.0',
+                'Os-Version': '12.0',
+                'Accept-Language': 'en',
+                'Platform': 'android',
+                'Device-Id': crypto.randomUUID()
+            };
+
+            let endpoint = 'http://localhost:3000/api/chat/send';
+            let payload = {
+                sessionId: room.sessionId,
+                referenceKey: crypto.randomUUID()
+            };
+
+            // เพิ่ม destructTime เฉพาะเมื่อไม่ใช่ลำดับที่ต้องการข้าม
+            if (destructTime > 0 && currentSequence !== skipDestructTimeSequence) {
+                payload.destructTime = destructTime;
+            }
+
+            try {
+                switch (type) {
+                    case 'TEXT':
+                        payload = {
+                            ...payload,
+                            contentType: 'TEXT',
+                            content: `Text message ${counterMessage}`,
+                            messageTimestamp: Date.now() * 1000
+                        };
+                        break;
+                        
+                    case 'LINK':
+                        payload = {
+                            ...payload,
+                            contentType: 'TEXT',
+                            content: `https://example.com/link/${counterMessage}`,
+                            messageTimestamp: Date.now() * 1000
+                        };
+                        break;
+                        
+                    case 'IMAGE':
+                        const imageId = crypto.randomUUID();
+                        const imageTimestamp = Date.now() * 1000;
+                        payload = {
+                            ...payload,
+                            contentType: 'IMAGE',
+                            content: `Image ${counterMessage}`,
+                            messageTimestamp: imageTimestamp,
+                            media: [{
+                                id: imageId,
+                                imageSource: `https://dummyimage.com/600x400/000/fff&text=${counterMessage}`,
+                                imageMedium: `https://dummyimage.com/300x200/000/fff&text=${counterMessage}`,
+                                imageThumbnail: `https://dummyimage.com/150x100/000/fff&text=${counterMessage}`,
+                                type: 'IMAGE',
+                                mediaRefKey: crypto.randomUUID(),
+                                width: 600,
+                                height: 400,
+                                cancelMedia: false,
+                                indexMedia: 0,
+                                timeStamp: imageTimestamp,
+                                messageTimestamp: imageTimestamp
+                            }]
+                        };
+                        break;
+                        
+                    case 'VIDEO':
+                        const videoId = crypto.randomUUID();
+                        const videoTimestamp = Date.now() * 1000;
+                        payload = {
+                            ...payload,
+                            contentType: 'VIDEO',
+                            content: `Video ${counterMessage}`,
+                            messageTimestamp: videoTimestamp,
+                            media: [{
+                                id: videoId,
+                                imageSource: `https://dummyimage.com/600x400/000/fff&text=${counterMessage}`,
+                                imageMedium: `https://dummyimage.com/300x200/000/fff&text=${counterMessage}`,
+                                imageThumbnail: `https://dummyimage.com/150x100/000/fff&text=${counterMessage}`,
+                                originalContentUrl: 'https://example.com/sample-video.mp4',
+                                type: 'VIDEO',
+                                mediaRefKey: crypto.randomUUID(),
+                                width: 600,
+                                height: 400,
+                                cancelMedia: false,
+                                indexMedia: 0,
+                                duration: 30,
+                                timeStamp: videoTimestamp,
+                                messageTimestamp: videoTimestamp
+                            }]
+                        };
+                        break;
+                        
+                    case 'MEDIA':
+                        const mediaTimestamp = Date.now() * 1000;
+                        payload = {
+                            ...payload,
+                            contentType: 'MEDIA',
+                            content: `Media ${counterMessage}`,
+                            messageTimestamp: mediaTimestamp,
+                            media: [
+                                {
+                                    id: crypto.randomUUID(),
+                                    imageSource: `https://dummyimage.com/600x400/000/fff&text=${counterMessage}`,
+                                    imageMedium: `https://dummyimage.com/300x200/000/fff&text=${counterMessage}`,
+                                    imageThumbnail: `https://dummyimage.com/150x100/000/fff&text=${counterMessage}`,
+                                    originalContentUrl: "https://example.com/sample-video.mp4",
+                                    type: "VIDEO",
+                                    mediaRefKey: crypto.randomUUID(),
+                                    width: 600,
+                                    height: 400,
+                                    cancelMedia: false,
+                                    indexMedia: 0,
+                                    duration: 30,
+                                    timeStamp: mediaTimestamp,
+                                    messageTimestamp: mediaTimestamp
+                                },
+                                {
+                                    id: crypto.randomUUID(),
+                                    imageSource: `https://dummyimage.com/600x400/000/fff&text=${counterMessage}`,
+                                    imageMedium: `https://dummyimage.com/300x200/000/fff&text=${counterMessage}`,
+                                    imageThumbnail: `https://dummyimage.com/150x100/000/fff&text=${counterMessage}`,
+                                    type: "IMAGE",
+                                    mediaRefKey: crypto.randomUUID(),
+                                    width: 600,
+                                    height: 400,
+                                    cancelMedia: false,
+                                    indexMedia: 1,
+                                    timeStamp: mediaTimestamp,
+                                    messageTimestamp: mediaTimestamp
+                                }
+                            ]
+                        };
+                        break;
+
+                    case 'FILE':
+                        const fileId = crypto.randomUUID();
+                        const currentResult = convertDateToMicroTimestamp();
+                        const fileTimestamp = currentResult.microTimestamp;
+                        
+                        // คำนวณ expDate (+7 วัน)
+                        const expDate = new Date(currentResult.date);
+                        expDate.setDate(expDate.getDate() + 7);
+                        const expResult = convertDateToMicroTimestamp(expDate);
+
+                        payload = {
+                            ...payload,
+                            contentType: 'FILE',
+                            content: `File ${counterMessage}`,
+                            messageTimestamp: fileTimestamp,
+                            media: [{
+                                id: fileId,
+                                fileName: `file_${counterMessage}.pdf`,
+                                fileSize: 1024,
+                                fileSource: 'https://example.com/sample.pdf',
+                                fileExtension: '.pdf',
+                                type: 'FILE',
+                                mediaRefKey: crypto.randomUUID(),
+                                timeStamp: fileTimestamp,
+                                expDate: expResult.microTimestamp,
+                                messageTimestamp: fileTimestamp,
+                                isDelete: false,
+                                cancelMedia: false,
+                                indexMedia: 0
+                            }]
+                        };
+                        break;
+                        
+                    case 'STICKER':
+                        payload = {
+                            ...payload,
+                            contentType: 'STICKER',
+                            messageTimestamp: Date.now() * 1000,
+                            sticker: {
+                                packageId: "651bdffda8dfd223058ccc7e",
+                                stickerId: "1709139681729314816",
+                                stickerUrl: "https://example.com/sticker.png"
+                            }
+                        };
+                        break;
+                        
+                    case 'NOTE':
+                        endpoint = 'http://localhost:3000/api/chat/note/create';
+                        const noteTimestamp = Date.now() * 1000;
+                        payload = {
+                            ...payload,
+                            contentNote: `Note ${counterMessage}`,
+                            messageTimestamp: noteTimestamp,
+                            timeStamp: noteTimestamp
+                        };
+                        break;
+
+                    case 'ALBUM':
+                        const albumTimestamp = Date.now() * 1000;
+                        // Create album first
+                        const createEndpoint = 'http://localhost:3000/api/chat/album/create';
+                        const createPayload = {
+                            sessionId: room.sessionId,
+                            mediaCount: 1,
+                            albumName: `Album ${counterMessage}`,
+                            messageTimestamp: albumTimestamp
+                        };
+                        
+                        // Send album creation request
+                        const createResponse = await fetch(createEndpoint, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(createPayload)
+                        });
+
+                        if (!createResponse.ok) {
+                            throw new Error(`HTTP error! status: ${createResponse.status}`);
+                        }
+
+                        // Get album data
+                        const albumData = await createResponse.json();
+                        
+                        // If album creation successful, update album
+                        if (albumData.statusCode === "200" && albumData.data) {
+                            const albumId = albumData.data.albumId;
+                            const mediaUploadId = crypto.randomUUID();
+                            const referenceKey = crypto.randomUUID();
+                            
+                            // Call album update API
+                            const updateResponse = await fetch('http://localhost:3000/api/chat/album/update', {
+                                method: 'POST',
+                                headers: headers,
+                                body: JSON.stringify({
+                                    sessionId: room.sessionId,
+                                    albumId: albumId,
+                                    actionName: "CREATE_ALBUM",
+                                    mediaUploadId: mediaUploadId,
+                                    messageTimestamp: albumTimestamp,
+                                    mediaAlbum: [
+                                        {
+                                            width: 600,
+                                            height: 400,
+                                            mediaType: "IMAGE",
+                                            timeStamp: albumTimestamp,
+                                            mediaRefKey: crypto.randomUUID(),
+                                            userId: room.userId || "",
+                                            mediaCountUpload: 1,
+                                            imageSource: `https://dummyimage.com/600x400/000/fff&text=${counterMessage}`,
+                                            imageMedium: `https://dummyimage.com/300x200/000/fff&text=${counterMessage}`,
+                                            imageThumbnail: `https://dummyimage.com/150x100/000/fff&text=${counterMessage}`,
+                                            indexMedia: 0,
+                                            createdTime: new Date().toISOString(),
+                                            id: crypto.randomUUID(),
+                                            albumId: albumId,
+                                            mediaUploadId: mediaUploadId,
+                                            messageTimestamp: albumTimestamp
+                                        }
+                                    ],
+                                    referenceKey: referenceKey
+                                })
+                            });
+
+                            if (!updateResponse.ok) {
+                                throw new Error(`HTTP error in album update! status: ${updateResponse.status}`);
+                            }
+
+                            // Wait before next request
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                        return;
+                }
+
+                console.log(`Sending ${type} message to room ${room.sessionId}`, payload);
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(`Message sent response:`, data);
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                if (type === 'NOTE') {
+                    if (data?.statusCode === "200") {
+                        console.log('Note created successfully');
+                        return 'NOTE_SUCCESS';
+                    } else {
+                        console.error('Failed to create note:', data);
+                        return null;
+                    }
+                } else if (data?.statusCode === "200" && data?.data?.[0]?.messages?.[0]?.messageId) {
+                    const messageId = data.data[0].messages[0].messageId;
+                    console.log(`Message ID received: ${messageId}`);
+                    return messageId;
+                } else {
+                    console.log('No messageId found in response:', data);
+                    return null;
+                }
+            } catch (error) {
+                console.error(`Error sending ${type} message:`, error);
+                return null;
+            }
+        };
+
+        // เพิ่มฟังก์ชันใหม่สำหรับเก็บข้อมูลสมาชิก mock
+        function saveMockMemberTokens(sessionId, members) {
+            const mockMembersData = JSON.parse(localStorage.getItem('mockMembersData') || '{}');
+            mockMembersData[sessionId] = members;
+            localStorage.setItem('mockMembersData', JSON.stringify(mockMembersData));
+        }
+
+        function getMockMemberTokens(sessionId) {
+            const mockMembersData = JSON.parse(localStorage.getItem('mockMembersData') || '{}');
+            return mockMembersData[sessionId] || [];
+        }
+
+        async function sendBatchMessages() {
+            const selectedRooms = getSelectedRooms();
+            if (selectedRooms.length === 0) {
+                alert('กรุณาเลือกห้องที่ต้องการส่งข้อความ');
+                return;
+            }
+
+            const contentType = document.getElementById('batchContentType').value;
+            const messageCount = parseInt(document.getElementById('batchMessageCount').value);
+            const destructTime = parseInt(document.getElementById('batchDestructTime').value);
+            const skipDestructTimeSequence = parseInt(document.getElementById('skipDestructTimeSequence').value) || 0;
+            const pinSequence = parseInt(document.getElementById('pinMessageSequence').value) || 0;
+            const replySequence = parseInt(document.getElementById('replyMessageSequence').value) || 0;
+            const replyContent = document.getElementById('replyMessageContent').value;
+            const useMockTokens = document.getElementById('useMockTokens').checked;
+            const useMessageDelay = document.getElementById('useMessageDelay').checked;
+            const accessToken = localStorage.getItem('accessToken');
+
+            // คำนวณจำนวนข้อความทั้งหมดที่จะส่ง
+            const totalMessages = selectedRooms.length * messageCount;
+
+            console.log('Starting batch send with settings:', {
+                contentType,
+                messageCount,
+                destructTime,
+                skipDestructTimeSequence,
+                pinSequence,
+                replySequence,
+                selectedRooms: selectedRooms.length,
+                useMockTokens,
+                useMessageDelay,
+                totalMessages
+            });
+
+            let progress = 0;
+            showProgressModal(progress, totalMessages);
+
+            try {
+                for (const room of selectedRooms) {
+                    console.log(`Processing room: ${room.sessionId}`);
+                    let messageCounter = 1;
+                    let currentSequence = 0;
+                    const messagesToPin = [];
+                    const messagesToReply = [];
+
+                    // ดึงข้อมูลสมาชิก mock ถ้าเป็นกลุ่ม mock และเลือกใช้โทเคนสมาชิก
+                    const mockGroups = JSON.parse(localStorage.getItem('mockGroups') || '[]');
+                    const isMockGroup = mockGroups.includes(room.sessionId);
+                    const mockMembers = isMockGroup ? getMockMemberTokens(room.sessionId) : [];
+                    
+                    if (useMockTokens && isMockGroup && mockMembers.length === 0) {
+                        console.warn(`No mock members found for group ${room.sessionId}, skipping...`);
+                        continue;
+                    }
+
+                    // สร้างรายการโทเคนที่จะใช้
+                    let tokenRotation = [];
+                    if (useMockTokens && isMockGroup && mockMembers.length > 0) {
+                        const rotationPattern = document.querySelector('input[name="rotationPattern"]:checked').value;
+                        
+                        switch (rotationPattern) {
+                            case 'rotate':
+                                tokenRotation = [accessToken, ...mockMembers.map(member => member.token)];
+                                console.log(`Using ${tokenRotation.length} tokens (including main user) in rotation`);
+                                break;
+                                
+                            case 'random':
+                                tokenRotation = [accessToken, ...mockMembers.map(member => member.token)];
+                                for (let i = tokenRotation.length - 1; i > 0; i--) {
+                                    const j = Math.floor(Math.random() * (i + 1));
+                                    [tokenRotation[i], tokenRotation[j]] = [tokenRotation[j], tokenRotation[i]];
+                                }
+                                console.log(`Using ${tokenRotation.length} tokens (including main user) in random order`);
+                                break;
+                                
+                            case 'single':
+                                const selectedMemberIndex = document.getElementById('singleSenderSelect').value;
+                                if (selectedMemberIndex !== '') {
+                                    tokenRotation = [mockMembers[selectedMemberIndex].token];
+                                    console.log(`Using single member token for all messages`);
+                                } else {
+                                    tokenRotation = [accessToken];
+                                    console.log(`Using main user token for all messages`);
+                                }
+                                break;
+                                
+                            default:
+                                tokenRotation = [accessToken];
+                        }
+                    } else {
+                        tokenRotation = [accessToken];
+                    }
+                    
+                    while (messageCounter <= messageCount) {
+                        if (contentType === 'ALL') {
+                            try {
+                                const messageTypes = ['TEXT', 'LINK', 'IMAGE', 'VIDEO', 'MEDIA', 'FILE', 'STICKER', 'ALBUM', 'NOTE'];
+                                const type = messageTypes[(messageCounter - 1) % messageTypes.length];
+                                
+                                currentSequence++;
+                                const tokenIndex = (currentSequence - 1) % tokenRotation.length;
+                                const currentToken = tokenRotation[tokenIndex];
+                                
+                                console.log(`[${tokenIndex + 1}/${tokenRotation.length}] Sending ${type} message #${messageCounter}`);
+                                const result = await window.sendMessage(room, type, messageCounter.toString(), currentToken, destructTime, currentSequence, skipDestructTimeSequence);
+                                
+                                if (result && result !== 'NOTE_SUCCESS' && type !== 'ALBUM') {
+                                    if (currentSequence === pinSequence) {
+                                        messagesToPin.push({ sessionId: room.sessionId, messageId: result, token: currentToken });
+                                    }
+                                    if (currentSequence === replySequence) {
+                                        messagesToReply.push({ sessionId: room.sessionId, messageId: result, token: currentToken });
+                                    }
+                                }
+                                
+                                progress++;
+                                updateProgressModal(progress, totalMessages);
+                                
+                                if (useMessageDelay) {
+                                    await new Promise(resolve => setTimeout(resolve, 2000));
+                                }
+                                messageCounter++;
+                            } catch (error) {
+                                console.error('Error in ALL message sequence:', error);
+                                messageCounter++;
+                            }
+                        } else {
+                            currentSequence++;
+                            const tokenIndex = (currentSequence - 1) % tokenRotation.length;
+                            const currentToken = tokenRotation[tokenIndex];
+                            
+                            console.log(`[${tokenIndex + 1}/${tokenRotation.length}] Sending ${contentType} message #${messageCounter}`);
+                            const messageId = await window.sendMessage(room, contentType, messageCounter.toString(), currentToken, destructTime, currentSequence, skipDestructTimeSequence);
+                            
+                            if (messageId && contentType !== 'NOTE' && contentType !== 'ALBUM') {
+                                if (currentSequence === pinSequence) {
+                                    messagesToPin.push({ sessionId: room.sessionId, messageId, token: currentToken });
+                                }
+                                if (currentSequence === replySequence) {
+                                    messagesToReply.push({ sessionId: room.sessionId, messageId, token: currentToken });
+                                }
+                            }
+                            
+                            progress++;
+                            updateProgressModal(progress, totalMessages);
+                            messageCounter++;
+
+                            if (useMessageDelay) {
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                            }
+                        }
+                    }
+
+                    // Pin messages
+                    if (contentType !== 'NOTE' && contentType !== 'ALBUM') {
+                        console.log(`Messages to pin for room ${room.sessionId}:`, messagesToPin);
+                        
+                        for (const msgToPin of messagesToPin) {
+                            try {
+                                console.log(`Attempting to pin message: ${msgToPin.messageId} with token: ${msgToPin.token.substring(0, 20)}...`);
+                                
+                                const pinResponse = await fetch('http://localhost:3000/api/chat/pin', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${msgToPin.token}`,
+                                        'App-Version': '1.9.0',
+                                        'Os-Version': '12.0',
+                                        'Accept-Language': 'en',
+                                        'Platform': 'android',
+                                        'Device-Id': crypto.randomUUID()
+                                    },
+                                    body: JSON.stringify({
+                                        sessionId: msgToPin.sessionId,
+                                        messageId: msgToPin.messageId
+                                    })
+                                });
+                                
+                                const pinData = await pinResponse.json();
+                                console.log('Pin response:', pinData);
+                                
+                                if (pinData.statusCode !== "200") {
+                                    console.error('Error pinning message:', pinData);
+                                    alert(`ไม่สามารถปักหมุดข้อความได้: ${pinData.message || 'Unknown error'}`);
+                                } else {
+                                    console.log('Successfully pinned message');
+                                }
+                                
+                                if (useMessageDelay) {
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                }
+                            } catch (error) {
+                                console.error('Error pinning message:', error);
+                                alert('เกิดข้อผิดพลาดในการปักหมุดข้อความ');
+                            }
+                        }
+                    }
+
+                    // Reply to messages
+                    if (replySequence > 0 && replyContent) {
+                        console.log(`Messages to reply for room ${room.sessionId}:`, messagesToReply);
+                        
+                        for (const msgToReply of messagesToReply) {
+                            try {
+                                console.log(`Attempting to reply to message: ${msgToReply.messageId} with token: ${msgToReply.token.substring(0, 20)}...`);
+                                
+                                const replyResponse = await fetch('http://localhost:3000/api/chat/reply', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${msgToReply.token}`,
+                                        'App-Version': '1.9.0',
+                                        'Os-Version': '12.0',
+                                        'Accept-Language': 'en',
+                                        'Platform': 'android',
+                                        'Device-Id': crypto.randomUUID()
+                                    },
+                                    body: JSON.stringify({
+                                        replyMsgId: msgToReply.messageId,
+                                        sessionId: msgToReply.sessionId,
+                                        referenceKey: crypto.randomUUID(),
+                                        contentType: 'TEXT',
+                                        content: replyContent
+                                    })
+                                });
+                                
+                                const replyData = await replyResponse.json();
+                                console.log('Reply response:', replyData);
+                                
+                                if (replyData.statusCode !== "200") {
+                                    console.error('Error replying to message:', replyData);
+                                    alert(`ไม่สามารถตอบกลับข้อความได้: ${replyData.message || 'Unknown error'}`);
+                                } else {
+                                    console.log('Successfully replied to message');
+                                }
+                                
+                                if (useMessageDelay) {
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                }
+                            } catch (error) {
+                                console.error('Error replying to message:', error);
+                                alert('เกิดข้อผิดพลาดในการตอบกลับข้อความ');
+                            }
+                        }
+                    }
+                }
+                
+                hideProgressModal();
+                alert('ส่งข้อความเสร็จสิ้น');
+                hideBatchSendModal();
+            } catch (error) {
+                console.error('Error sending batch messages:', error);
+                hideProgressModal();
+                alert('เกิดข้อผิดพลาดในการส่งข้อความ');
+            }
+        }
+
+        async function fetchRooms(accessToken) {
+            try {
+                const response = await fetch('http://localhost:3000/api/rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                        'App-Version': '1.9.0',
+                        'Os-Version': '12.0',
+                        'Accept-Language': 'en',
+                        'Platform': 'android',
+                        'Device-Id': crypto.randomUUID()
+                    },
+                    body: JSON.stringify({
+                        limit: 10000,
+                        dateTime: "12 May 2025 18:31:23",
+                        page: 1
+                    })
+                });
+
+                const data = await response.json();
+                if (data.data && Array.isArray(data.data)) {
+                    // เก็บข้อมูลห้องไว้ใน window.lastRoomData
+                    window.lastRoomData = data.data;
+                    displayRooms(data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching rooms:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลห้องแชท');
+            }
+        }
+
+        function displayRooms(rooms) {
+            window.lastRoomData = rooms;
+            
+            const groupList = document.getElementById('groupList');
+            const privateList = document.getElementById('privateList');
+
+            // Get mock groups and draft groups from localStorage
+            const mockGroups = JSON.parse(localStorage.getItem('mockGroups') || '[]');
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            const draftGroups = drafts.map(draft => draft.groupName);
+
+            // แยกห้องตามประเภท
+            const groupRooms = rooms.filter(room => room.sessionType === 'GROUP');
+            const privateRooms = rooms.filter(room => room.sessionType === 'CHAT' || room.official);
+
+            // แสดงห้องกลุ่ม
+            groupList.innerHTML = groupRooms.map(room => {
+                const isMock = mockGroups.includes(room.sessionId);
+                const isDraft = draftGroups.includes(room.groupName);
+                const badges = [];
+                
+                if (isMock) {
+                    badges.push('<span class="mock-badge">mock</span>');
+                }
+                if (isDraft) {
+                    badges.push('<span class="draft-badge">draft</span>');
+                }
+                
+                const badgeHtml = badges.length > 0 ? 
+                    `<div class="badge-container">${badges.join('')}</div>` : '';
+
+                return `
+                    <div class="room-item" onclick="selectRoom(this, '${room.sessionId}')">
+                        <div class="room-type type-group">Group ${badgeHtml}</div>
+                        <div class="room-name">${room.groupName || 'Unnamed Group'}</div>
+                        <div class="room-id">ID: ${room.sessionId}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // แสดงห้องส่วนตัวและ OA
+            privateList.innerHTML = privateRooms.map(room => {
+                let type, name, typeClass;
+                
+                if (room.official) {
+                    type = 'OA';
+                    name = room.official.displayName;
+                    typeClass = 'type-oa';
+                } else {
+                    type = 'Private';
+                    name = room.user?.displayName || 'Unknown User';
+                    typeClass = 'type-chat';
+                }
+
+                return `
+                    <div class="room-item" onclick="selectRoom(this, '${room.sessionId}')">
+                        <div class="room-type ${typeClass}">${type}</div>
+                        <div class="room-name">${name}</div>
+                        <div class="room-id">ID: ${room.sessionId}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectRoom(element, sessionId) {
+            // ลบ class selected จากทุกห้อง
+            document.querySelectorAll('.room-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // เพิ่ม class selected ให้ห้องที่เลือก
+            element.classList.add('selected');
+
+            // บันทึก sessionId ที่เลือกไว้ใน localStorage
+            localStorage.setItem('selectedSessionId', sessionId);
+        }
+
+        function showCreateGroupModal() {
+            document.getElementById('createGroupModal').style.display = 'flex';
+        }
+
+        function hideCreateGroupModal() {
+            document.getElementById('createGroupModal').style.display = 'none';
+            document.getElementById('creationProgress').style.display = 'none';
+            document.getElementById('groupProgressFill').style.width = '0%';
+            document.getElementById('groupProgressText').textContent = '0%';
+            document.getElementById('currentOperation').textContent = 'กำลังดำเนินการ...';
+        }
+
+        async function createGroupWithMembers() {
+            const groupName = document.getElementById('groupName').value;
+            const memberCount = parseInt(document.getElementById('memberCount').value);
+            const startPhone = document.getElementById('startPhoneNumber').value;
+
+            if (!groupName || !memberCount || !startPhone) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+
+            const currentUserToken = localStorage.getItem('accessToken');
+            if (!currentUserToken) {
+                alert('กรุณาเข้าสู่ระบบก่อนสร้างกลุ่ม');
+                return;
+            }
+
+            const progress = document.getElementById('creationProgress');
+            const progressFill = document.getElementById('groupProgressFill');
+            const progressText = document.getElementById('groupProgressText');
+            const currentOperation = document.getElementById('currentOperation');
+            progress.style.display = 'block';
+
+            try {
+                // Step 1: Create the group first using the current user's token
+                currentOperation.textContent = 'กำลังสร้างกลุ่ม...';
+
+                console.log('Creating group with data:', {
+                    groupName,
+                    token: currentUserToken
+                });
+
+                const formData = new FormData();
+                formData.append('groupName', groupName);
+
+                const createGroupResponse = await fetch('http://localhost:3000/api/group/setting/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentUserToken}`,
+                        'App-Version': '1.9.0',
+                        'Os-Version': '12.0',
+                        'Accept-Language': 'en',
+                        'Platform': 'android',
+                        'Device-Id': crypto.randomUUID()
+                    },
+                    body: formData
+                });
+
+                const groupData = await createGroupResponse.json();
+                console.log('Group creation response:', groupData);
+
+                if (!createGroupResponse.ok || groupData.statusCode !== "200") {
+                    console.error('Failed to create group:', groupData);
+                    throw new Error(`Failed to create group: ${groupData.message || 'Unknown error'}`);
+                }
+
+                if (groupData.data?.sessionId) {
+                    const sessionId = groupData.data.sessionId;
+                    console.log('Successfully created group with sessionId:', sessionId);
+                    
+                    // Store the mock group ID in localStorage
+                    const mockGroups = JSON.parse(localStorage.getItem('mockGroups') || '[]');
+                    mockGroups.push(sessionId);
+                    localStorage.setItem('mockGroups', JSON.stringify(mockGroups));
+
+                    // Step 2: Create accounts for all members
+                    const members = [];
+                    const basePhone = parseInt(startPhone);
+                    
+                    for (let i = 0; i < memberCount; i++) {
+                        const phone = (basePhone + i).toString();
+                        currentOperation.textContent = `กำลังสร้างบัญชีสมาชิก ${i + 1}/${memberCount}`;
+                        
+                        try {
+                            // Create member account
+                            const verifyResponse = await fetch('http://localhost:3000/api/auth/otp/signup/verify', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Device-Id': crypto.randomUUID()
+                                },
+                                body: JSON.stringify({
+                                    countryCode: "TH",
+                                    dialCode: "+66",
+                                    mobile: phone,
+                                    code: "9549",
+                                    referenceCode: "Test",
+                                    acceptTermCondition: true,
+                                    fcmToken: "newmsg"
+                                })
+                            });
+
+                            const verifyData = await verifyResponse.json();
+                            if (verifyData.statusCode === "200") {
+                                const token = verifyData.data.accessToken;
+                                
+                                // Update member's display name
+                                await fetch('http://localhost:3000/api/profile/name', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`,
+                                        'App-Version': '1.9.0',
+                                        'Os-Version': '12.0',
+                                        'Accept-Language': 'en',
+                                        'Platform': 'android',
+                                        'Device-Id': crypto.randomUUID()
+                                    },
+                                    body: JSON.stringify({
+                                        displayName: `member ${i + 1} ${phone}`
+                                    })
+                                });
+
+                                // Join group
+                                await fetch('http://localhost:3000/api/group/join', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`,
+                                        'App-Version': '1.9.0',
+                                        'Os-Version': '12.0',
+                                        'Accept-Language': 'en',
+                                        'Platform': 'android',
+                                        'Device-Id': crypto.randomUUID()
+                                    },
+                                    body: JSON.stringify({
+                                        joinBy: "LINK",
+                                        qrCode: "",
+                                        sessionId: sessionId
+                                    })
+                                });
+
+                                // ซื้อสติกเกอร์สำหรับสมาชิกใหม่
+                                currentOperation.textContent = `กำลังซื้อสติกเกอร์ให้สมาชิก ${i + 1}/${memberCount}`;
+                                try {
+                                    const purchaseResponse = await fetch('http://localhost:3000/api/sticker/purchase', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`,
+                                            'App-Version': '1.9.0',
+                                            'Os-Version': '12.0',
+                                            'Accept-Language': 'en',
+                                            'Platform': 'android',
+                                            'Device-Id': crypto.randomUUID()
+                                        },
+                                        body: JSON.stringify({
+                                            packageId: "651bdffda8dfd223058ccc7e"
+                                        })
+                                    });
+                                    const purchaseData = await purchaseResponse.json();
+                                    console.log(`Sticker purchase for member ${phone}:`, purchaseData);
+                                } catch (purchaseError) {
+                                    console.error(`Error purchasing sticker for member ${phone}:`, purchaseError);
+                                }
+
+                                members.push({
+                                    phone: phone,
+                                    token: token,
+                                    displayName: `member ${i + 1} ${phone}`
+                                });
+                            }
+                        } catch (error) {
+                            console.error(`Error processing member ${phone}:`, error);
+                        }
+
+                        const percent = ((i + 1) / memberCount) * 100;
+                        progressFill.style.width = `${percent}%`;
+                        progressText.textContent = `${Math.round(percent)}%`;
+
+                        // Add small delay between operations
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+
+                    // เก็บข้อมูลสมาชิกไว้
+                    saveMockMemberTokens(sessionId, members);
+
+                    // ตรวจสอบว่ามี draft ที่กำลังใช้งานอยู่หรือไม่
+                    const currentDraft = JSON.parse(localStorage.getItem('currentDraft') || 'null');
+                    if (currentDraft) {
+                        // ตั้งค่าการส่งข้อความตาม draft
+                        document.getElementById('batchContentType').value = currentDraft.contentType;
+                        document.getElementById('batchMessageCount').value = currentDraft.messageCount;
+                        document.getElementById('batchDestructTime').value = currentDraft.destructTime;
+                        document.getElementById('skipDestructTimeSequence').value = currentDraft.skipDestructTimeSequence;
+                        document.getElementById('pinMessageSequence').value = currentDraft.pinSequence;
+                        document.getElementById('replyMessageSequence').value = currentDraft.replySequence;
+                        document.getElementById('replyMessageContent').value = currentDraft.replyContent;
+
+                        // ลบข้อมูล draft ที่ใช้งานแล้ว
+                        localStorage.removeItem('currentDraft');
+
+                        // เริ่มส่งข้อความอัตโนมัติ
+                        setTimeout(() => {
+                            showBatchSendModal('group');
+                            // เลือกกลุ่มที่เพิ่งสร้าง
+                            setTimeout(() => {
+                                const roomCheckboxes = document.querySelectorAll('#roomSelection input[type="checkbox"]');
+                                roomCheckboxes.forEach(checkbox => {
+                                    if (checkbox.value === sessionId) {
+                                        checkbox.checked = true;
+                                        // Trigger change event to update mock options if needed
+                                        const event = new Event('change');
+                                        checkbox.dispatchEvent(event);
+                                    }
+                                });
+                                // Update mock options visibility
+                                const mockOptionsDiv = document.querySelector('.mock-options');
+                                if (mockOptionsDiv) {
+                                    mockOptionsDiv.style.display = 'block';
+                                }
+                                // Enable token rotation by default for mock groups
+                                const useMockTokensCheckbox = document.getElementById('useMockTokens');
+                                if (useMockTokensCheckbox) {
+                                    useMockTokensCheckbox.checked = true;
+                                    const tokenRotationOptions = document.getElementById('tokenRotationOptions');
+                                    if (tokenRotationOptions) {
+                                        tokenRotationOptions.style.display = 'block';
+                                    }
+                                }
+                            }, 500); // Add a small delay to ensure the room list is populated
+                        }, 1000);
+                    }
+
+                    alert('สร้างกลุ่มและเพิ่มสมาชิกเรียบร้อยแล้ว');
+                    hideCreateGroupModal();
+                    if (!currentDraft) {
+                        location.reload(); // Refresh to show new group only if not using draft
+                    }
+                } else {
+                    throw new Error('Failed to create group: ' + (groupData.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Detailed error in group creation:', {
+                    message: error.message,
+                    stack: error.stack,
+                    response: error.response
+                });
+                alert('เกิดข้อผิดพลาดในการสร้างกลุ่ม: ' + error.message);
+                hideCreateGroupModal();
+            }
+        }
+
+        // เพิ่มฟังก์ชันสำหรับจัดการ Draft
+        function showDraftModal() {
+            document.getElementById('draftModal').style.display = 'flex';
+            loadDrafts();
+        }
+
+        function hideDraftModal() {
+            document.getElementById('draftModal').style.display = 'none';
+        }
+
+        function showCreateDraftModal() {
+            document.getElementById('createDraftModal').style.display = 'flex';
+        }
+
+        function hideCreateDraftModal() {
+            document.getElementById('createDraftModal').style.display = 'none';
+        }
+
+        function loadDrafts() {
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            const draftList = document.getElementById('draftList');
+            
+            if (drafts.length === 0) {
+                draftList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">ไม่มี Draft</div>';
+                return;
+            }
+
+            draftList.innerHTML = drafts.map((draft, index) => `
+                <div class="draft-item">
+                    <div class="draft-item-header">
+                        <div class="draft-item-name">${draft.name}</div>
+                        <div class="draft-item-actions">
+                            <button onclick="useDraft(${index})" class="use-btn">ใช้งาน</button>
+                            <button onclick="editDraft(${index})" class="edit-btn">แก้ไข</button>
+                            <button onclick="deleteDraft(${index})" class="delete-btn">ลบ</button>
+                        </div>
+                    </div>
+                    <div class="draft-item-details">
+                        <div>ชื่อกลุ่ม: ${draft.groupName}</div>
+                        <div>จำนวนสมาชิก: ${draft.memberCount}</div>
+                        <div>ประเภทข้อความ: ${draft.contentType}</div>
+                        <div>จำนวนข้อความ: ${draft.messageCount}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveDraft() {
+            const draft = {
+                name: document.getElementById('draftName').value,
+                groupName: document.getElementById('draftGroupName').value,
+                memberCount: parseInt(document.getElementById('draftMemberCount').value),
+                contentType: document.getElementById('draftContentType').value,
+                messageCount: parseInt(document.getElementById('draftMessageCount').value),
+                destructTime: parseInt(document.getElementById('draftDestructTime').value),
+                skipDestructTimeSequence: parseInt(document.getElementById('draftSkipDestructTimeSequence').value),
+                pinSequence: parseInt(document.getElementById('draftPinSequence').value),
+                replySequence: parseInt(document.getElementById('draftReplySequence').value),
+                replyContent: document.getElementById('draftReplyContent').value
+            };
+
+            if (!draft.name) {
+                alert('กรุณาตั้งชื่อ Draft');
+                return;
+            }
+
+            if (!draft.groupName) {
+                alert('กรุณาตั้งชื่อกลุ่ม');
+                return;
+            }
+
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            drafts.push(draft);
+            localStorage.setItem('messageDrafts', JSON.stringify(drafts));
+
+            hideCreateDraftModal();
+            loadDrafts();
+        }
+
+        function useDraft(index) {
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            const draft = drafts[index];
+
+            // สร้างกลุ่มใหม่ตามการตั้งค่าใน draft
+            document.getElementById('groupName').value = draft.groupName;
+            document.getElementById('memberCount').value = draft.memberCount;
+            document.getElementById('startPhoneNumber').value = '60000800'; // ค่าเริ่มต้น
+
+            // แสดง modal สร้างกลุ่ม
+            showCreateGroupModal();
+
+            // เก็บข้อมูล draft ไว้ใช้หลังจากสร้างกลุ่มเสร็จ
+            localStorage.setItem('currentDraft', JSON.stringify(draft));
+
+            hideDraftModal();
+        }
+
+        function editDraft(index) {
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            const draft = drafts[index];
+
+            // เติมข้อมูลลงในฟอร์ม
+            document.getElementById('draftName').value = draft.name;
+            document.getElementById('draftGroupName').value = draft.groupName;
+            document.getElementById('draftMemberCount').value = draft.memberCount;
+            document.getElementById('draftContentType').value = draft.contentType;
+            document.getElementById('draftMessageCount').value = draft.messageCount;
+            document.getElementById('draftDestructTime').value = draft.destructTime;
+            document.getElementById('draftSkipDestructTimeSequence').value = draft.skipDestructTimeSequence;
+            document.getElementById('draftPinSequence').value = draft.pinSequence;
+            document.getElementById('draftReplySequence').value = draft.replySequence;
+            document.getElementById('draftReplyContent').value = draft.replyContent;
+
+            // แสดง modal แก้ไข
+            showCreateDraftModal();
+            
+            // ลบ draft เดิม
+            drafts.splice(index, 1);
+            localStorage.setItem('messageDrafts', JSON.stringify(drafts));
+        }
+
+        function deleteDraft(index) {
+            if (confirm('คุณต้องการลบ Draft นี้ใช่หรือไม่?')) {
+                const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+                drafts.splice(index, 1);
+                localStorage.setItem('messageDrafts', JSON.stringify(drafts));
+                loadDrafts();
+            }
+        }
+    </script>
+</body>
+</html> 

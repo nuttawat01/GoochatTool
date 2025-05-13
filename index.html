@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GooChat - แพลตฟอร์มแชทที่ใช้งานง่ายและปลอดภัย">
+    <title>GooChat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --primary-hover: #166fe5;
+            --success-color: #42b72a;
+            --error-color: #ff4d4f;
+            --text-primary: #1c1e21;
+            --text-secondary: #65676b;
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --border-color: #dddfe2;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .container {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        h2 {
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: var(--bg-secondary);
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .name-change-container {
+            background-color: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+        }
+
+        .name-change-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .name-change-form input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .name-change-form button {
+            width: auto;
+            white-space: nowrap;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+            border: 1px solid;
+        }
+
+        .message-success {
+            background-color: rgba(66, 183, 42, 0.1);
+            color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .message-error {
+            background-color: rgba(255, 77, 79, 0.1);
+            color: var(--error-color);
+            border-color: var(--error-color);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .room-info {
+            background-color: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .search-container {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-container input {
+            margin-bottom: 0;
+        }
+
+        .room-item {
+            background-color: var(--bg-secondary);
+            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+
+        .room-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .room-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .room-item.selected {
+            border: 2px solid var(--primary-color);
+            background-color: rgba(24, 119, 242, 0.05);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .room-info p {
+            margin: 10px 0;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        .room-info p:first-child {
+            margin-top: 0;
+        }
+
+        .room-info p:last-child {
+            margin-bottom: 0;
+        }
+
+        .room-actions {
+            margin-left: 20px;
+        }
+
+        .room-actions button {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .room-message-section {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+        }
+
+        .room-message-input {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-type-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .message-type-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .message-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .message-input-container input {
+            flex: 1;
+            background-color: var(--bg-secondary);
+            margin-bottom: 0;
+        }
+
+        .message-input-container button {
+            width: auto;
+            white-space: nowrap;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .image-input-container {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .image-input-container.active {
+            display: block;
+        }
+
+        .image-input-container input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        .image-input-container input[type="text"] {
+            margin-bottom: 10px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
+            margin-left: 8px;
+        }
+
+        .badge-group {
+            background-color: var(--primary-color);
+        }
+
+        .badge-chat {
+            background-color: var(--success-color);
+        }
+
+        .badge-oa {
+            background-color: var(--error-color);
+        }
+
+        .highlight {
+            background-color: rgba(24, 119, 242, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        #result {
+            background-color: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            margin-top: 30px;
+        }
+
+        .token {
+            word-break: break-all;
+            background-color: var(--bg-primary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #roomList {
+            display: grid;
+            gap: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 15px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 30px;
+            }
+
+            .name-change-form {
+                flex-direction: column;
+            }
+
+            .name-change-form button {
+                width: 100%;
+            }
+
+            .room-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .room-actions {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .room-actions button {
+                width: 100%;
+            }
+        }
+
+        /* เพิ่มสไตล์ใหม่สำหรับส่วนข้อมูลผู้ใช้ */
+        .user-info-container {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+        }
+
+        .user-info-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .user-info-header h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .info-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-section h3 {
+            color: var(--text-primary);
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-section h3::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .token {
+            word-break: break-all;
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+        }
+
+        .action-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition);
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .action-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .user-info-container {
+                padding: 20px;
+                margin: 0 15px 30px;
+            }
+
+            .info-section {
+                padding: 15px;
+            }
+        }
+
+        .user-profile {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .user-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .profile-section {
+            margin-bottom: 15px;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .profile-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-item {
+            margin-top: 8px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: white;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .detail-item .label {
+            font-weight: 500;
+            color: var(--text-primary);
+            width: 85px;
+            flex-shrink: 0;
+        }
+
+        .value-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .value-container .value {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .change-name-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+            flex-shrink: 0;
+            width: 45px;
+        }
+
+        @media (max-width: 768px) {
+            .detail-item .label {
+                width: 70px;
+            }
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .cancel-button {
+            background-color: var(--error-color);
+        }
+
+        .cancel-button:hover {
+            background-color: #ff3333;
+        }
+
+        /* เพิ่ม CSS สำหรับ Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-footer button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 80px;
+        }
+
+        .modal-footer .cancel-btn {
+            background-color: #f1f1f1;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-footer .cancel-btn:hover {
+            background-color: #e5e5e5;
+        }
+
+        .modal-footer .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .modal-footer .save-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .modal input {
+            margin-bottom: 0;
+        }
+
+        /* ปรับปรุง message ใน modal */
+        .modal .message {
+            margin-top: 10px;
+            margin-bottom: 0;
+            display: none;
+        }
+
+        .message-status {
+            margin-top: 10px;
+        }
+
+        .progress-container {
+            margin-top: 10px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            padding: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+        }
+
+        .progress-text {
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <h1>GooChat</h1>
+    
+    <div class="user-info-container">
+        <div class="user-info-header">
+            <h2>ข้อมูลผู้ใช้งาน</h2>
+        </div>
+
+        <div class="info-section">
+            <h3>เบอร์โทรศัพท์</h3>
+            <form id="phoneForm">
+                <div class="form-group">
+                    <input type="tel" id="mobile" name="mobile" placeholder="กรอกเบอร์โทรศัพท์" required>
+                </div>
+                <button type="submit" class="action-button">ยืนยัน</button>
+            </form>
+        </div>
+
+        <div id="userProfile" class="info-section" style="display: none;">
+            <div class="user-details">
+                <div class="profile-section">
+                    <div class="profile-section-title">ข้อมูลพื้นฐาน</div>
+                    <div class="detail-item">
+                        <div class="label">ชื่อที่แสดง</div>
+                        <div class="value-container">
+                            <span class="value" id="userDisplayName"></span>
+                            <button class="change-name-btn" onclick="showNameChangeForm()">แก้ไข</button>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">GooChat ID:</span>
+                        <span class="value" id="userId"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="nameChangeFormSection" class="info-section" style="display: none;">
+            <form id="nameChangeForm" class="name-change-form">
+                <input type="text" id="newDisplayName" placeholder="กรอกชื่อที่ต้องการ" required>
+                <div class="form-buttons">
+                    <button type="submit" class="action-button">บันทึก</button>
+                    <button type="button" class="cancel-button" onclick="hideNameChangeForm()">ยกเลิก</button>
+                </div>
+            </form>
+            <div id="nameChangeSuccess" class="message message-success">เปลี่ยนชื่อสำเร็จ</div>
+            <div id="nameChangeError" class="message message-error">เกิดข้อผิดพลาดในการเปลี่ยนชื่อ</div>
+        </div>
+
+        <div id="result" class="info-section" style="display: none;">
+            <h3>Access Token</h3>
+            <div class="token"></div>
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="send.html" class="action-button" style="display: inline-block; text-decoration: none;">
+                    ไปยังหน้าส่งข้อความ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="roomInfo" class="room-info" style="display: none;">
+        <h2>ข้อมูลห้องแชท</h2>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="ค้นหา Group Name หรือ Display Name...">
+        </div>
+        <div id="roomList"></div>
+        <div id="loading" class="loading">กำลังโหลดข้อมูล...</div>
+    </div>
+
+    <!-- เพิ่ม Modal สำหรับแก้ไขชื่อ -->
+    <div id="nameChangeModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>แก้ไขชื่อ</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modalNewDisplayName">ชื่อที่ต้องการ</label>
+                    <input type="text" id="modalNewDisplayName" placeholder="กรอกชื่อที่ต้องการ" required>
+                </div>
+                <div id="modalNameChangeSuccess" class="message message-success">เปลี่ยนชื่อสำเร็จ</div>
+                <div id="modalNameChangeError" class="message message-error">เกิดข้อผิดพลาดในการเปลี่ยนชื่อ</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="cancel-btn" onclick="hideNameChangeForm()">ยกเลิก</button>
+                <button type="button" class="save-btn" onclick="saveNewName()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันสำหรับดึงข้อมูลโปรไฟล์
+        async function fetchUserProfile(accessToken) {
+            try {
+                const response = await fetch('http://localhost:3000/api/profile/me', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                        'App-Version': '1.9.0',
+                        'Os-Version': '12.0',
+                        'Accept-Language': 'en',
+                        'Platform': 'android',
+                        'Device-Id': crypto.randomUUID()
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+                console.log('Profile data:', data);
+                
+                if (data.data && data.data.userProfile) {
+                    const userProfile = data.data.userProfile;
+                    
+                    // แสดงข้อมูลพื้นฐาน
+                    const userProfileElement = document.getElementById('userProfile');
+                    const userDisplayNameElement = document.getElementById('userDisplayName');
+                    const userIdElement = document.getElementById('userId');
+
+                    if (userProfileElement) {
+                        userProfileElement.style.display = 'block';
+                    }
+                    if (userDisplayNameElement) {
+                        userDisplayNameElement.textContent = userProfile.displayName || 'ไม่ระบุ';
+                    }
+                    if (userIdElement) {
+                        userIdElement.textContent = userProfile.gochatId || 'ไม่ระบุ';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+            }
+        }
+
+        // ฟังก์ชันสำหรับดึงข้อมูลห้องแชท
+        async function fetchRooms() {
+            const loading = document.getElementById('loading');
+            const roomInfo = document.getElementById('roomInfo');
+            
+            if (!window.lastAccessToken) {
+                console.error('No access token found');
+                return;
+            }
+
+            try {
+                loading.style.display = 'block';
+                roomInfo.style.display = 'block';
+
+                const response = await fetch('http://localhost:3000/api/rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.lastAccessToken}`,
+                        'App-Version': '1.9.0',
+                        'Os-Version': '12.0',
+                        'Accept-Language': 'en',
+                        'Platform': 'android',
+                        'Device-Id': crypto.randomUUID()
+                    },
+                    body: JSON.stringify({
+                        page: 1,
+                        dateTime: "12 May 2025 22:44:40",
+                        limit: 10000
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Rooms data:', data);
+
+                if (data.statusCode === "200" && Array.isArray(data.data)) {
+                    window.lastRoomData = data.data;
+                    filterAndDisplayRooms(data.data, '');
+                } else {
+                    console.error('Invalid room data format:', data);
+                    const roomListDiv = document.getElementById('roomList');
+                    if (roomListDiv) {
+                        roomListDiv.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">ไม่พบข้อมูลห้องแชท</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching rooms:', error);
+                const roomListDiv = document.getElementById('roomList');
+                if (roomListDiv) {
+                    roomListDiv.innerHTML = '<div style="text-align: center; color: var(--error-color);">เกิดข้อผิดพลาดในการดึงข้อมูลห้องแชท</div>';
+                }
+            } finally {
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }
+        }
+
+        // ฟังก์ชันสำหรับแสดงข้อมูลทั้งหมด
+        function showAllSections() {
+            // ซ่อนฟอร์มกรอกเบอร์โทรศัพท์
+            const phoneFormSection = document.querySelector('.info-section:first-of-type');
+            if (phoneFormSection) {
+                phoneFormSection.style.display = 'none';
+            }
+
+            // แสดงส่วนข้อมูลผู้ใช้
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) {
+                userProfile.style.display = 'block';
+            }
+
+            // แสดง Access Token
+            const resultDiv = document.getElementById('result');
+            if (resultDiv) {
+                resultDiv.style.display = 'block';
+            }
+
+            // แสดงส่วนข้อมูลห้องแชท
+            const roomInfo = document.getElementById('roomInfo');
+            if (roomInfo) {
+                roomInfo.style.display = 'block';
+            }
+        }
+
+        // เพิ่มฟังก์ชันใหม่สำหรับซ่อนข้อมูลทั้งหมด
+        function hideAllSections() {
+            const userProfile = document.getElementById('userProfile');
+            const resultDiv = document.getElementById('result');
+            const roomInfo = document.getElementById('roomInfo');
+            const nameChangeFormSection = document.getElementById('nameChangeFormSection');
+
+            if (userProfile) userProfile.style.display = 'none';
+            if (resultDiv) resultDiv.style.display = 'none';
+            if (roomInfo) roomInfo.style.display = 'none';
+            if (nameChangeFormSection) nameChangeFormSection.style.display = 'none';
+        }
+
+        // แก้ไขฟังก์ชัน DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            // ซ่อนทุกส่วนตั้งแต่เริ่มต้น
+            hideAllSections();
+
+            // ตรวจสอบ access token ที่บันทึกไว้
+            const savedToken = localStorage.getItem('accessToken');
+            if (savedToken) {
+                window.lastAccessToken = savedToken;
+                try {
+                    // ดึงข้อมูลโปรไฟล์
+                    await fetchUserProfile(savedToken);
+                    // ดึงข้อมูลห้องแชท
+                    await fetchRooms();
+                    
+                    // แสดงข้อมูลทั้งหมด
+                    showAllSections();
+
+                    // แสดง Access Token
+                    const tokenDiv = document.querySelector('#result .token');
+                    if (tokenDiv) {
+                        tokenDiv.textContent = savedToken;
+                    }
+                } catch (error) {
+                    console.error('Error initializing with saved token:', error);
+                    // ในกรณีที่มีข้อผิดพลาด ให้ลบ token และซ่อนทุกส่วน
+                    localStorage.removeItem('accessToken');
+                    hideAllSections();
+                }
+            }
+
+            // ผูกอีเวนต์กับฟอร์มเบอร์โทรศัพท์
+            const phoneForm = document.getElementById('phoneForm');
+            if (phoneForm) {
+                phoneForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const mobileInput = document.getElementById('mobile');
+                    if (!mobileInput) return;
+
+                    let mobile = mobileInput.value.trim();
+                    if (mobile.startsWith('0')) {
+                        mobile = mobile.substring(1);
+                    }
+
+                    localStorage.setItem('lastMobile', mobile);
+                    
+                    try {
+                        const response = await fetch('http://localhost:3000/api/auth/otp/signup/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'App-Version': '1.9.0',
+                                'Os-Version': '12.0',
+                                'Accept-Language': 'en',
+                                'Platform': 'android',
+                                'Device-Id': crypto.randomUUID()
+                            },
+                            body: JSON.stringify({
+                                countryCode: "TH",
+                                dialCode: "+66",
+                                mobile: mobile,
+                                code: "9549",
+                                referenceCode: "Test",
+                                acceptTermCondition: true,
+                                fcmToken: "newmsg"
+                            })
+                        });
+
+                        const data = await response.json();
+                        console.log('Auth response:', data);
+                        
+                        if (data.data && data.data.accessToken) {
+                            window.lastAccessToken = data.data.accessToken;
+                            localStorage.setItem('accessToken', data.data.accessToken);
+
+                            // แสดง Access Token
+                            const tokenDiv = document.querySelector('#result .token');
+                            if (tokenDiv) {
+                                tokenDiv.textContent = data.data.accessToken;
+                            }
+
+                            // ดึงและแสดงข้อมูลโปรไฟล์
+                            await fetchUserProfile(data.data.accessToken);
+                            
+                            // ดึงและแสดงข้อมูลห้องแชท
+                            await fetchRooms();
+                            
+                            // แสดงข้อมูลทั้งหมด
+                            showAllSections();
+                        } else {
+                            // ถ้าไม่มี access token ให้ซ่อนทุกส่วน
+                            hideAllSections();
+                            const resultDiv = document.getElementById('result');
+                            if (resultDiv) {
+                                resultDiv.style.display = 'block';
+                                const tokenDiv = resultDiv.querySelector('.token');
+                                if (tokenDiv) {
+                                    tokenDiv.textContent = 'การยืนยันไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        // ในกรณีที่มีข้อผิดพลาด ให้ซ่อนทุกส่วนและแสดงข้อความผิดพลาด
+                        hideAllSections();
+                        const resultDiv = document.getElementById('result');
+                        if (resultDiv) {
+                            resultDiv.style.display = 'block';
+                            const tokenDiv = resultDiv.querySelector('.token');
+                            if (tokenDiv) {
+                                tokenDiv.textContent = `Error: ${error.message}`;
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        // ฟังก์ชันสำหรับแสดง Modal แก้ไขชื่อ
+        function showNameChangeForm() {
+            const modal = document.getElementById('nameChangeModal');
+            const input = document.getElementById('modalNewDisplayName');
+            if (modal && input) {
+                modal.style.display = 'flex';
+                input.value = '';
+                input.focus();
+
+                // เพิ่ม event listener สำหรับการคลิกพื้นหลัง
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        hideNameChangeForm();
+                    }
+                });
+
+                // เพิ่ม event listener สำหรับการกด Enter
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        saveNewName();
+                    }
+                });
+            }
+        }
+
+        // ฟังก์ชันสำหรับซ่อน Modal แก้ไขชื่อ
+        function hideNameChangeForm() {
+            const modal = document.getElementById('nameChangeModal');
+            if (modal) {
+                modal.style.display = 'none';
+                // ซ่อนข้อความแจ้งเตือน
+                document.getElementById('modalNameChangeSuccess').style.display = 'none';
+                document.getElementById('modalNameChangeError').style.display = 'none';
+                // ลบ event listener
+                modal.removeEventListener('click', hideNameChangeForm);
+            }
+        }
+
+        // ฟังก์ชันสำหรับบันทึกชื่อใหม่
+        async function saveNewName() {
+            console.log('saveNewName function called');
+            const newName = document.getElementById('modalNewDisplayName').value.trim();
+            const successMessage = document.getElementById('modalNameChangeSuccess');
+            const errorMessage = document.getElementById('modalNameChangeError');
+            
+            console.log('Attempting to save new name:', newName);
+            
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            if (!newName) {
+                errorMessage.textContent = 'กรุณากรอกชื่อ';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            if (!window.lastAccessToken) {
+                errorMessage.textContent = 'ไม่พบ Access Token กรุณาเข้าสู่ระบบใหม่';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                console.log('Sending request with token:', window.lastAccessToken);
+
+                const response = await fetch('http://localhost:3000/api/profile/name', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.lastAccessToken}`,
+                        'App-Version': '1.9.0',
+                        'Os-Version': '12.0',
+                        'Accept-Language': 'en',
+                        'Platform': 'android',
+                        'Device-Id': crypto.randomUUID()
+                    },
+                    body: JSON.stringify({
+                        displayName: newName
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Response from server:', data);
+                
+                if (data.statusCode === "200") {
+                    // อัพเดตชื่อในหน้าเว็บ
+                    const displayNameElement = document.getElementById('userDisplayName');
+                    if (displayNameElement) {
+                        displayNameElement.textContent = newName;
+                    }
+                    
+                    // แสดงข้อความสำเร็จ
+                    successMessage.style.display = 'block';
+                    
+                    // ปิด modal หลังจาก 1.5 วินาที
+                    setTimeout(() => {
+                        hideNameChangeForm();
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'เกิดข้อผิดพลาดในการเปลี่ยนชื่อ');
+                }
+            } catch (error) {
+                console.error('Error saving name:', error);
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // ฟังก์ชันสำหรับไฮไลท์ข้อความที่ค้นหา
+        function highlightText(text, searchTerm) {
+            if (!searchTerm) return text;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // ฟังก์ชันสำหรับกรองและแสดงผลห้องแชท
+        function filterAndDisplayRooms(rooms, searchTerm) {
+            const roomListDiv = document.getElementById('roomList');
+            if (!Array.isArray(rooms)) {
+                console.error('Rooms is not an array:', rooms);
+                roomListDiv.innerHTML = '<div style="text-align: center; color: var(--error-color);">เกิดข้อผิดพลาดในการโหลดข้อมูลห้องแชท</div>';
+                return;
+            }
+
+            const filteredRooms = rooms.filter(room => {
+                const groupName = room.groupName || '';
+                const displayName = room.user?.displayName || '';
+                const officialName = room.official?.displayName || '';
+                const searchLower = searchTerm.toLowerCase();
+                return groupName.toLowerCase().includes(searchLower) || 
+                       displayName.toLowerCase().includes(searchLower) ||
+                       officialName.toLowerCase().includes(searchLower);
+            });
+
+            if (filteredRooms.length === 0) {
+                roomListDiv.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">ไม่พบห้องแชทที่ตรงกับการค้นหา</div>';
+                return;
+            }
+
+            roomListDiv.innerHTML = filteredRooms.map(room => {
+                let sessionType = room.sessionType;
+                let displayName = '';
+                let typeClass = '';
+                let badgeClass = '';
+                
+                if (room.official) {
+                    sessionType = 'OA';
+                    displayName = room.official.displayName;
+                    typeClass = 'type-oa';
+                    badgeClass = 'badge-oa';
+                } else if (room.sessionType === 'GROUP') {
+                    displayName = room.groupName;
+                    typeClass = 'type-group';
+                    badgeClass = 'badge-group';
+                } else if (room.user) {
+                    displayName = room.user.displayName;
+                    typeClass = 'type-chat';
+                    badgeClass = 'badge-chat';
+                }
+
+                return `
+                    <div class="room-item ${typeClass}" id="room-${room.sessionId}">
+                        <div class="room-header">
+                            <div class="room-info">
+                                <p><strong>Session ID:</strong> ${room.sessionId}</p>
+                                <p><strong>Session Type:</strong> <span class="type-badge ${badgeClass}">${sessionType}</span></p>
+                                <p><strong>${sessionType === 'GROUP' ? 'Group Name' : 'Display Name'}:</strong> ${highlightText(displayName || 'ไม่ระบุชื่อ', searchTerm)}</p>
+                            </div>
+                            <div class="room-actions">
+                                <button onclick="selectRoom('${room.sessionId}')">เลือกห้อง</button>
+                            </div>
+                        </div>
+                        <div id="message-section-${room.sessionId}" class="room-message-section" style="display: none;">
+                            <div class="room-message-input">
+                                <div class="message-type-selector">
+                                    <button type="button" class="message-type-btn active" data-type="TEXT" onclick="handleMessageTypeChange('${room.sessionId}', 'TEXT')">ข้อความ</button>
+                                    <button type="button" class="message-type-btn" data-type="LINK" onclick="handleMessageTypeChange('${room.sessionId}', 'LINK')">ลิงก์</button>
+                                    <button type="button" class="message-type-btn" data-type="IMAGE" onclick="handleMessageTypeChange('${room.sessionId}', 'IMAGE')">รูปภาพ</button>
+                                    <button type="button" class="message-type-btn" data-type="VIDEO" onclick="handleMessageTypeChange('${room.sessionId}', 'VIDEO')">วิดีโอ</button>
+                                    <button type="button" class="message-type-btn" data-type="MEDIA" onclick="handleMessageTypeChange('${room.sessionId}', 'MEDIA')">มีเดียรวม</button>
+                                    <button type="button" class="message-type-btn" data-type="FILE" onclick="handleMessageTypeChange('${room.sessionId}', 'FILE')">ไฟล์</button>
+                                    <button type="button" class="message-type-btn" data-type="STICKER" onclick="handleMessageTypeChange('${room.sessionId}', 'STICKER')">สติกเกอร์</button>
+                                </div>
+                                <div class="message-input-container">
+                                    <input type="number" id="repeat-count-${room.sessionId}" placeholder="จำนวนครั้ง" min="1" max="1000" style="width: 120px;">
+                                    <input type="number" id="destruct-time-${room.sessionId}" placeholder="เวลาลบอัตโนมัติ (วินาที)" min="0" style="width: 150px;">
+                                    <button onclick="sendMessage('${room.sessionId}')">ส่งข้อความ</button>
+                                </div>
+                                <div class="message-status">
+                                    <div id="message-success-${room.sessionId}" class="message message-success">ส่งข้อความสำเร็จ</div>
+                                    <div id="message-error-${room.sessionId}" class="message message-error">เกิดข้อผิดพลาดในการส่งข้อความ</div>
+                                </div>
+                                <div class="progress-container" id="progress-container-${room.sessionId}">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progress-fill-${room.sessionId}"></div>
+                                    </div>
+                                    <div class="progress-text" id="progress-text-${room.sessionId}">กำลังส่งข้อความ...</div>
+                                    <div class="progress-stats">
+                                        <span id="progress-success-${room.sessionId}">สำเร็จ: 0</span>
+                                        <span id="progress-fail-${room.sessionId}">ล้มเหลว: 0</span>
+                                        <span id="progress-remaining-${room.sessionId}">เหลือ: 0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // เรียกใช้ handleMessageTypeChange สำหรับห้องที่เลือกไว้
+            const selectedRoom = document.querySelector('.room-item.selected');
+            if (selectedRoom) {
+                const sessionId = selectedRoom.id.replace('room-', '');
+                const activeType = selectedRoom.querySelector('.message-type-btn.active')?.dataset.type || 'TEXT';
+                handleMessageTypeChange(sessionId, activeType);
+            }
+        }
+
+        // เพิ่ม event listener สำหรับช่องค้นหา
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.trim();
+            const roomData = window.lastRoomData;
+            if (roomData) {
+                filterAndDisplayRooms(roomData, searchTerm);
+            }
+        });
+
+        // ฟังก์ชันสำหรับเลือกห้อง
+        function selectRoom(sessionId) {
+            // ซ่อนส่วนส่งข้อความของทุกห้อง
+            document.querySelectorAll('.room-message-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // ลบ class selected จากทุกห้อง
+            document.querySelectorAll('.room-item').forEach(room => {
+                room.classList.remove('selected');
+            });
+            // แสดงส่วนส่งข้อความของห้องที่เลือก
+            document.getElementById(`message-section-${sessionId}`).style.display = 'block';
+            // เพิ่ม class selected ให้ห้องที่เลือก
+            document.getElementById(`room-${sessionId}`).classList.add('selected');
+        }
+
+        // ฟังก์ชันสำหรับจัดการการเลือกประเภทข้อความ
+        function handleMessageTypeChange(sessionId, type) {
+            const buttons = document.querySelectorAll(`#message-section-${sessionId} .message-type-btn`);
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // รีเซ็ตข้อความแจ้งเตือน
+            const successMessage = document.getElementById(`message-success-${sessionId}`);
+            const errorMessage = document.getElementById(`message-error-${sessionId}`);
+            
+            if (successMessage) {
+                successMessage.style.display = 'none';
+            }
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+            }
+        }
+
+        // แก้ไขฟังก์ชันสำหรับส่งข้อความ
+        async function sendMessage(sessionId) {
+            const activeTypeBtn = document.querySelector(`#message-section-${sessionId} .message-type-btn.active`);
+            if (!activeTypeBtn) {
+                console.error('No active message type button found');
+                return;
+            }
+            const activeType = activeTypeBtn.dataset.type;
+            const repeatCount = parseInt(document.getElementById(`repeat-count-${sessionId}`).value) || 1;
+            const destructTime = parseInt(document.getElementById(`destruct-time-${sessionId}`).value) || 0;
+            
+            // เช็คค่า repeatCount
+            if (repeatCount < 1 || repeatCount > 1000) {
+                const errorMessage = document.getElementById(`message-error-${sessionId}`);
+                if (errorMessage) {
+                    errorMessage.textContent = 'จำนวนครั้งต้องอยู่ระหว่าง 1-1000';
+                    errorMessage.style.display = 'block';
+                }
+                return;
+            }
+
+            // ซ่อนข้อความแจ้งเตือนเก่า
+            const successMessage = document.getElementById(`message-success-${sessionId}`);
+            const errorMessage = document.getElementById(`message-error-${sessionId}`);
+            if (successMessage) {
+                successMessage.style.display = 'none';
+            }
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+            }
+
+            // แสดง progress container
+            const progressContainer = document.getElementById(`progress-container-${sessionId}`);
+            const progressFill = document.getElementById(`progress-fill-${sessionId}`);
+            const progressText = document.getElementById(`progress-text-${sessionId}`);
+            const progressSuccess = document.getElementById(`progress-success-${sessionId}`);
+            const progressFail = document.getElementById(`progress-fail-${sessionId}`);
+            const progressRemaining = document.getElementById(`progress-remaining-${sessionId}`);
+            
+            if (!progressContainer || !progressFill || !progressText || !progressSuccess || !progressFail || !progressRemaining) {
+                console.error('One or more progress elements not found');
+                return;
+            }
+            
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressSuccess.textContent = 'สำเร็จ: 0';
+            progressFail.textContent = 'ล้มเหลว: 0';
+            progressRemaining.textContent = `เหลือ: ${repeatCount}`;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let i = 1; i <= repeatCount; i++) {
+                let requestBody;
+
+                if (activeType === 'FILE') {
+                    const mediaRefKey = crypto.randomUUID().toUpperCase();
+                    const fileId = crypto.randomUUID();
+                    
+                    // สร้าง timestamp ปัจจุบัน
+                    const now = new Date();
+                    const currentMicroTimestamp = convertDateToMicroTimestamp(now);
+                    
+                    // สร้าง timestamp สำหรับ expDate (+7 วัน)
+                    const expDate = new Date(now);
+                    expDate.setDate(expDate.getDate() + 7);
+                    const expMicroTimestamp = convertDateToMicroTimestamp(expDate);
+                    
+                    requestBody = {
+                        destructTime: destructTime,
+                        referenceKey: crypto.randomUUID().toUpperCase(),
+                        sessionId: sessionId,
+                        contentType: "FILE",
+                        content: "",
+                        media: [{
+                            timeStamp: currentMicroTimestamp,
+                            fileSize: 10809064,
+                            id: fileId,
+                            originalContentUrl: "https://gochat-storage.s3.amazonaws.com/7c9bec81-0a4e-4728-a823-3cad30290421/680a08da19cf7ef8262d4365/QYHBLend13.pdf",
+                            indexMedia: 0,
+                            fileName: `${i}.jpg`,
+                            messageTimestamp: currentMicroTimestamp,
+                            fileSource: "https://gochat-storage.s3.amazonaws.com/7c9bec81-0a4e-4728-a823-3cad30290421/680a08da19cf7ef8262d4365/QYHBLend13.pdf",
+                            mediaBase64: "",
+                            expDate: expMicroTimestamp,
+                            type: "FILE",
+                            isDelete: false,
+                            fileExtension: ".jpg",
+                            mediaRefKey: mediaRefKey,
+                            cancelMedia: false
+                        }]
+                    };
+                } else if (activeType === 'IMAGE') {
+                    const mediaRefKey = crypto.randomUUID();
+                    requestBody = {
+                        sessionId: sessionId,
+                        referenceKey: crypto.randomUUID(),
+                        contentType: 'IMAGE',
+                        content: `Image ${i}`,
+                        destructTime: destructTime,
+                        media: [{
+                            id: crypto.randomUUID(),
+                            imageSource: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                            imageMedium: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                            imageThumbnail: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                            type: 'IMAGE',
+                            mediaRefKey: mediaRefKey,
+                            width: 600,
+                            height: 400,
+                            cancelMedia: false,
+                            indexMedia: 0
+                        }]
+                    };
+                } else if (activeType === 'VIDEO') {
+                    requestBody = {
+                        sessionId: sessionId,
+                        referenceKey: crypto.randomUUID(),
+                        contentType: 'VIDEO',
+                        content: `Video ${i}`,
+                        destructTime: destructTime,
+                        media: [{
+                            id: crypto.randomUUID(),
+                            imageSource: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                            imageMedium: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                            imageThumbnail: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                            originalContentUrl: `https://gochat-storage.s3.amazonaws.com/7c9bec81-0a4e-4728-a823-3cad30290421/680a08da19cf7ef8262d4365/n0PzpPiiQy.mp4`,
+                            type: 'VIDEO',
+                            mediaRefKey: crypto.randomUUID(),
+                            width: 100,
+                            height: 100,
+                            cancelMedia: false,
+                            indexMedia: 0,
+                            duration: 1383
+                        }]
+                    };
+                } else if (activeType === 'MEDIA') {
+                    requestBody = {
+                        sessionId: sessionId,
+                        referenceKey: crypto.randomUUID(),
+                        contentType: 'MEDIA',
+                        content: `Media ${i}`,
+                        destructTime: destructTime,
+                        media: [
+                            {
+                                id: crypto.randomUUID(),
+                                imageSource: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                                imageMedium: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                                imageThumbnail: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                                originalContentUrl: `https://gochat-storage.s3.amazonaws.com/7c9bec81-0a4e-4728-a823-3cad30290421/680a08da19cf7ef8262d4365/n0PzpPiiQy.mp4`,
+                                type: 'VIDEO',
+                                mediaRefKey: crypto.randomUUID(),
+                                width: 100,
+                                height: 100,
+                                cancelMedia: false,
+                                indexMedia: 0,
+                                duration: 1383
+                            },
+                            {
+                                id: crypto.randomUUID(),
+                                imageSource: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                                imageMedium: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                                imageThumbnail: `https://dummyimage.com/600x400/000/fff&text=${i}`,
+                                type: 'IMAGE',
+                                mediaRefKey: crypto.randomUUID(),
+                                width: 100,
+                                height: 100,
+                                cancelMedia: false,
+                                indexMedia: 1
+                            }
+                        ]
+                    };
+                } else if (activeType === 'LINK') {
+                    requestBody = {
+                        sessionId: sessionId,
+                        referenceKey: crypto.randomUUID(),
+                        contentType: 'TEXT',
+                        content: `https://example.com/link${i}`,
+                        destructTime: destructTime
+                    };
+                } else if (activeType === 'STICKER') {
+                    requestBody = {
+                        destructTime: destructTime,
+                        referenceKey: crypto.randomUUID().toUpperCase(),
+                        sticker: {
+                            packageId: "651bdffda8dfd223058ccc7e",
+                            stickerId: "1709139681729314816"
+                        },
+                        contentType: "STICKER",
+                        sessionId: sessionId
+                    };
+                } else {
+                    // ข้อความธรรมดา
+                    requestBody = {
+                        sessionId: sessionId,
+                        referenceKey: crypto.randomUUID(),
+                        contentType: 'TEXT',
+                        content: `Message ${i}`,
+                        destructTime: destructTime
+                    };
+                }
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${window.lastAccessToken}`,
+                            'App-Version': '1.9.0',
+                            'Os-Version': '12.0',
+                            'Accept-Language': 'en',
+                            'Platform': 'android',
+                            'Device-Id': crypto.randomUUID()
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    const data = await response.json();
+            
+                    if (data.statusCode === "200") {
+                        successCount++;
+                    } else {
+                        failCount++;
+                        console.error('Error response:', data);
+                    }
+                } catch (error) {
+                    failCount++;
+                    console.error('Error sending message:', error);
+                }
+
+                // อัพเดท progress bar และข้อความ
+                const progress = (i / repeatCount) * 100;
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = `กำลังส่งข้อความ... ${i}/${repeatCount} (${Math.round(progress)}%)`;
+                progressSuccess.textContent = `สำเร็จ: ${successCount}`;
+                progressFail.textContent = `ล้มเหลว: ${failCount}`;
+                progressRemaining.textContent = `เหลือ: ${repeatCount - i}`;
+
+                // อัพเดทข้อความสถานะ
+                if (i === repeatCount) {
+                    if (failCount === 0) {
+                        successMessage.textContent = `ส่งข้อความสำเร็จทั้งหมด ${successCount} ครั้ง`;
+                        successMessage.style.display = 'block';
+                        progressText.textContent = 'ส่งข้อความเสร็จสิ้น';
+                    } else {
+                        errorMessage.textContent = `ส่งสำเร็จ ${successCount} ครั้ง, ล้มเหลว ${failCount} ครั้ง`;
+                        errorMessage.style.display = 'block';
+                        progressText.textContent = 'ส่งข้อความเสร็จสิ้น (มีข้อผิดพลาด)';
+                    }
+                }
+            }
+        }
+
+        // ฟังก์ชันสำหรับสร้าง timestamp ในรูปแบบที่ต้องการ
+        function convertDateToMicroTimestamp(date = new Date()) {
+            // คำนวณ timestamp ในรูปแบบมิลลิวินาที
+            const millisTimestamp = date.getTime();
+            
+            // แปลงเป็นไมโครวินาที (คูณด้วย 1000)
+            let microTimestamp = millisTimestamp * 1000;
+            
+            // สร้างเลขสุ่มเพิ่มเติม 3 หลักสุดท้าย
+            const randomDigits = Math.floor(Math.random() * 1000);
+            microTimestamp = microTimestamp * 1000 + randomDigits;
+            
+            return microTimestamp;
+        }
+    </script>
+</body>
+</html> 
