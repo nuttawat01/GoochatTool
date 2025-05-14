@@ -787,15 +787,31 @@
 
         .draft-item {
             background-color: var(--bg-primary);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 10px;
             margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
+            position: relative;
         }
 
-        .draft-item:hover {
-            background-color: #f5f6f7;
+        .draft-sequence {
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1877f2;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .draft-item-header {
@@ -803,6 +819,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            padding-left: 20px;
+        }
+
+        .draft-item:hover {
+            background-color: #f5f6f7;
         }
 
         .draft-item-name {
@@ -2693,6 +2714,7 @@
 
             draftList.innerHTML = drafts.map((draft, index) => `
                 <div class="draft-item">
+                    <div class="draft-sequence">${index + 1}</div>
                     <div class="draft-item-header">
                         <div style="display: flex; align-items: center;">
                             <input type="checkbox" class="draft-select" data-index="${index}" style="margin-right: 10px;">
