@@ -133,11 +133,13 @@
             cursor: pointer;
             transition: var(--transition);
             flex-shrink: 0;
+            border: 1px solid var(--border-color);
         }
 
         .room-item:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
+            border-color: var(--primary-color);
         }
 
         .room-item.selected {
@@ -146,7 +148,8 @@
         }
 
         .room-type {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
@@ -175,24 +178,28 @@
             display: inline-flex;
             align-items: center;
             color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
             font-weight: 500;
-            margin-left: 8px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         .mock-badge {
             background-color: #ff9800;
+            border: 1px solid #f57c00;
         }
 
         .draft-badge {
             background-color: #2196F3;
+            border: 1px solid #1976D2;
         }
 
         .badge-container {
-            display: flex;
-            gap: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             margin-left: 8px;
         }
 
@@ -1227,10 +1234,10 @@
                     <label>ลำดับข้อความที่จะไม่ส่งเวลาลบอัตโนมัติ:</label>
                     <input type="number" id="draftSkipDestructTimeSequence" min="0" value="0">
 
-                    <label>ลำดับข้อความที่จะปักหมุด:</label>
+                    <label>PIN:</label>
                     <input type="number" id="draftPinSequence" min="0" value="0">
 
-                    <label>ลำดับข้อความที่จะตอบกลับ:</label>
+                    <label>Reply:</label>
                     <input type="number" id="draftReplySequence" min="0" value="0">
 
                     <label>ข้อความที่จะตอบกลับ:</label>
@@ -2114,20 +2121,20 @@
                 if (isDraft) {
                     badges.push('<span class="draft-badge">draft</span>');
                 }
-                
-                const badgeHtml = badges.length > 0 ? 
-                    `<div class="badge-container">${badges.join('')}</div>` : '';
 
                 return `
                     <div class="room-item" onclick="selectRoom(this, '${room.sessionId}')">
-                        <div class="room-type type-group">Group ${badgeHtml}</div>
+                        <div class="room-header">
+                            <span class="room-type type-group">Group</span>
+                            <div class="room-badges">${badges.join('')}</div>
+                        </div>
                         <div class="room-name">${room.groupName || 'Unnamed Group'}</div>
                         <div class="room-id">ID: ${room.sessionId}</div>
                     </div>
                 `;
             }).join('');
 
-            // แสดงห้องส่วนตัวและ OA
+            // แสดงห้องส่วนตัวและ OA (ไม่เปลี่ยนแปลง)
             privateList.innerHTML = privateRooms.map(room => {
                 let type, name, typeClass;
                 
@@ -2694,9 +2701,17 @@
             }
 
             const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
-            drafts.push(draft);
+            
+            // ถ้ามี editingDraftIndex ให้แทนที่ draft เดิม แทนที่จะเพิ่มใหม่
+            const editingDraftIndex = parseInt(localStorage.getItem('editingDraftIndex'));
+            if (!isNaN(editingDraftIndex) && editingDraftIndex >= 0) {
+                drafts[editingDraftIndex] = draft;
+                localStorage.removeItem('editingDraftIndex'); // ลบ index ที่กำลังแก้ไขทิ้ง
+            } else {
+                drafts.push(draft);
+            }
+            
             localStorage.setItem('messageDrafts', JSON.stringify(drafts));
-
             hideCreateDraftModal();
             displayDrafts();
             showDraftModal();
@@ -2722,38 +2737,44 @@
 
         function editDraft(index) {
             const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            if (!drafts || !drafts[index]) {
+                console.error('Draft not found:', { index, draftsLength: drafts.length });
+                alert('ไม่พบข้อมูล Draft ที่ต้องการแก้ไข');
+                return;
+            }
+
             const draft = drafts[index];
+            console.log('Editing draft:', draft);
+
+            // เก็บ index ของ draft ที่กำลังแก้ไขไว้
+            localStorage.setItem('editingDraftIndex', index);
 
             // เติมข้อมูลลงในฟอร์ม
-            document.getElementById('draftName').value = draft.name;
-            document.getElementById('draftGroupName').value = draft.groupName;
-            document.getElementById('draftMemberCount').value = draft.memberCount;
+            document.getElementById('draftName').value = draft.name || '';
+            document.getElementById('draftGroupName').value = draft.groupName || '';
+            document.getElementById('draftMemberCount').value = draft.memberCount || 1;
             document.getElementById('draftStartPhoneNumber').value = draft.startPhoneNumber || '';
-            document.getElementById('draftContentType').value = draft.contentType;
-            document.getElementById('draftMessageCount').value = draft.messageCount;
-            document.getElementById('draftDestructTime').value = draft.destructTime;
-            document.getElementById('draftSkipDestructTimeSequence').value = draft.skipDestructTimeSequence;
-            document.getElementById('draftPinSequence').value = draft.pinSequence;
-            document.getElementById('draftReplySequence').value = draft.replySequence;
-            document.getElementById('draftReplyContent').value = draft.replyContent;
+            document.getElementById('draftContentType').value = draft.contentType || 'TEXT';
+            document.getElementById('draftMessageCount').value = draft.messageCount || 1;
+            document.getElementById('draftDestructTime').value = draft.destructTime || 0;
+            document.getElementById('draftSkipDestructTimeSequence').value = draft.skipDestructTimeSequence || 0;
+            document.getElementById('draftPinSequence').value = draft.pinSequence || 0;
+            document.getElementById('draftReplySequence').value = draft.replySequence || 0;
+            document.getElementById('draftReplyContent').value = draft.replyContent || '';
 
             // Set rotation pattern
-            if (draft.rotationPattern) {
-                const rotationPattern = document.querySelector(`input[name="draftRotationPattern"][value="${draft.rotationPattern}"]`);
-                if (rotationPattern) {
-                    rotationPattern.checked = true;
-                }
+            const defaultPattern = 'rotate';
+            const rotationPattern = draft.rotationPattern || defaultPattern;
+            const radioButton = document.querySelector(`input[name="draftRotationPattern"][value="${rotationPattern}"]`);
+            if (radioButton) {
+                radioButton.checked = true;
             } else {
-                // Default to rotate if not set
-                document.querySelector('input[name="draftRotationPattern"][value="rotate"]').checked = true;
+                // Default to rotate if pattern not found
+                document.querySelector(`input[name="draftRotationPattern"][value="${defaultPattern}"]`).checked = true;
             }
 
             // แสดง modal แก้ไข
             showCreateDraftModal();
-            
-            // ลบ draft เดิม
-            drafts.splice(index, 1);
-            localStorage.setItem('messageDrafts', JSON.stringify(drafts));
         }
 
         function deleteDraft(index) {
