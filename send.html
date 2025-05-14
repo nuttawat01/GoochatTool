@@ -977,6 +977,48 @@
             width: 18px;
             height: 18px;
         }
+
+        .draft-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .import-export-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .import-export-btn:hover {
+            background-color: #1976D2;
+            transform: translateY(-2px);
+        }
+
+        .import-export-btn:active {
+            transform: translateY(0);
+        }
+
+        .import-export-btn.import {
+            background-color: #4CAF50;
+        }
+
+        .import-export-btn.import:hover {
+            background-color: #388E3C;
+        }
+
+        .hidden-file-input {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -1175,6 +1217,13 @@
                         <button class="run-selected-btn" onclick="runSelectedDrafts()" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-left: 10px;">
                             รัน Draft ที่เลือก
                         </button>
+                        <button class="import-export-btn import" onclick="document.getElementById('importDrafts').click()">
+                            Import Drafts
+                        </button>
+                        <button class="import-export-btn" onclick="exportDrafts()">
+                            Export Drafts
+                        </button>
+                        <input type="file" id="importDrafts" class="hidden-file-input" accept=".json" onchange="importDraftsFromFile(event)">
                     </div>
                     <div class="select-all-container" style="margin-bottom: 10px;">
                         <label class="draft-checkbox" style="display: flex; align-items: center; cursor: pointer;">
@@ -2601,7 +2650,24 @@
         // เพิ่มฟังก์ชันสำหรับจัดการ Draft
         function showDraftModal() {
             document.getElementById('draftModal').style.display = 'flex';
-            displayDrafts(); // Changed from loadDrafts() to displayDrafts()
+            
+            // Update draft actions HTML to include import/export buttons
+            const draftActions = document.querySelector('.draft-actions');
+            draftActions.innerHTML = `
+                <button class="create-draft-btn" onclick="showCreateDraftModal()">สร้าง Draft ใหม่</button>
+                <button class="run-selected-btn" onclick="runSelectedDrafts()" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
+                    รัน Draft ที่เลือก
+                </button>
+                <button class="import-export-btn import" onclick="document.getElementById('importDrafts').click()">
+                    Import Drafts
+                </button>
+                <button class="import-export-btn" onclick="exportDrafts()">
+                    Export Drafts
+                </button>
+                <input type="file" id="importDrafts" class="hidden-file-input" accept=".json" onchange="importDraftsFromFile(event)">
+            `;
+            
+            displayDrafts();
         }
 
         function hideDraftModal() {
@@ -2911,6 +2977,108 @@
                     if (modal) modal.remove();
                 }
             }
+        }
+
+        function exportDrafts() {
+            const drafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+            if (drafts.length === 0) {
+                alert('ไม่มี Draft ที่จะ export');
+                return;
+            }
+
+            // ตรวจสอบว่ามี drafts ที่ถูกเลือกหรือไม่
+            const selectedDrafts = Array.from(document.querySelectorAll('.draft-select:checked')).map(checkbox => {
+                const index = parseInt(checkbox.dataset.index);
+                return drafts[index];
+            });
+
+            if (selectedDrafts.length === 0) {
+                if (!confirm('ไม่มี Draft ที่ถูกเลือก ต้องการ export ทั้งหมดหรือไม่?')) {
+                    return;
+                }
+                // ถ้าไม่มีการเลือก และผู้ใช้ยืนยันที่จะ export ทั้งหมด
+                selectedDrafts.push(...drafts);
+            }
+
+            // สร้างไฟล์ JSON
+            const dataStr = JSON.stringify(selectedDrafts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            // สร้างชื่อไฟล์ที่มีวันที่และเวลา
+            const date = new Date();
+            const timestamp = date.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const fileName = selectedDrafts.length === drafts.length ? 
+                `drafts_all_${timestamp}.json` : 
+                `drafts_selected_${selectedDrafts.length}_${timestamp}.json`;
+
+            // สร้าง URL และลิงก์สำหรับดาวน์โหลด
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            
+            // จำลองการคลิกเพื่อดาวน์โหลด
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // แสดงข้อความสำเร็จ
+            alert(`Export สำเร็จ: ${selectedDrafts.length} drafts`);
+        }
+
+        function importDraftsFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedDrafts = JSON.parse(e.target.result);
+                    
+                    // ตรวจสอบว่าเป็น array และมีข้อมูลที่ถูกต้อง
+                    if (!Array.isArray(importedDrafts)) {
+                        throw new Error('ไฟล์ไม่ถูกต้อง: ต้องเป็น array ของ drafts');
+                    }
+
+                    // ตรวจสอบโครงสร้างข้อมูลของแต่ละ draft
+                    importedDrafts.forEach((draft, index) => {
+                        if (!draft.name || !draft.groupName) {
+                            throw new Error(`Draft ที่ ${index + 1} ไม่มีข้อมูลที่จำเป็น (name หรือ groupName)`);
+                        }
+                    });
+
+                    // ถามผู้ใช้ว่าต้องการ merge หรือ replace
+                    const existingDrafts = JSON.parse(localStorage.getItem('messageDrafts') || '[]');
+                    if (existingDrafts.length > 0) {
+                        if (confirm('คุณต้องการรวม drafts ที่นำเข้ากับ drafts ที่มีอยู่หรือไม่?\nกด OK เพื่อรวม (Merge)\nกด Cancel เพื่อแทนที่ทั้งหมด (Replace)')) {
+                            // Merge: เพิ่ม drafts ใหม่ต่อท้าย
+                            const mergedDrafts = [...existingDrafts, ...importedDrafts];
+                            localStorage.setItem('messageDrafts', JSON.stringify(mergedDrafts));
+                        } else {
+                            // Replace: แทนที่ทั้งหมด
+                            localStorage.setItem('messageDrafts', JSON.stringify(importedDrafts));
+                        }
+                    } else {
+                        // ถ้าไม่มี drafts เดิม ให้บันทึกทับได้เลย
+                        localStorage.setItem('messageDrafts', JSON.stringify(importedDrafts));
+                    }
+
+                    // รีเซ็ต input file
+                    event.target.value = '';
+                    
+                    // แสดงผลใหม่
+                    displayDrafts();
+                    alert('นำเข้า Drafts สำเร็จ');
+                } catch (error) {
+                    console.error('Error importing drafts:', error);
+                    alert('เกิดข้อผิดพลาดในการนำเข้า Drafts: ' + error.message);
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
